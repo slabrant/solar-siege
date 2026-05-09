@@ -14,6 +14,13 @@ config/name="Solar Siege"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+SolarCycle="*res://scripts/SolarCycle.gd"
+JobBoard="*res://scripts/JobBoard.gd"
+MultiplayerManager="*res://scripts/MultiplayerManager.gd"
+PossessionManager="*res://scripts/PossessionManager.gd"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
