@@ -10,7 +10,7 @@
 
 A cooperative tower defense game that uses automation and possession. A group of colonizers lands on an unknown world and starts building. As they push further out, something stirs. After a triggering event — entering a structure, crossing a threshold — robots begin activating across the world, attacking during the day and freezing at night.
 
-Both players manage the colony from a top-down strategic view, but can drop into any worker at any time for direct 1st-person control. Every worker levels up, develops a specialty, and becomes someone worth protecting.
+Players manage the colony from a top-down strategic view, but can drop into any worker at any time for direct 1st-person control. Every worker levels up, develops a specialty, and becomes someone worth protecting.
 
 ---
 
@@ -40,17 +40,27 @@ Robot strength follows the arc of the sun. They're at peak power at Noon and wea
 
 Workers are the heart of the colony. Every worker starts as a nameless Recruit. As they gain experience, they develop a name, a specialty, and an appearance to match. A veteran worker looks and performs differently from a fresh one, and losing them matters.
 
-All workers can do all tasks. Skill level determines speed — not access.
+All workers can do all tasks. Skill level determines speed — not access. Colonists have no weapons and cannot fight — combat belongs entirely to turrets and hunting towers.
+
+### Worker Color
+
+A worker's clothing color is a live readout of their skill level. No stat screen needed — a glance tells you everything.
+
+- **Red channel** — Gunnery level
+- **Green channel** — Harvesting level  
+- **Blue channel** — Engineering level
+
+All workers start dark gray. As levels increase, their color shifts toward the field they're developing. A pure Gunner turns red. A pure Engineer turns blue. A Gunner-Engineer turns magenta. A worker who has maxed all three fields turns white — the visual and mechanical cap.
 
 ### The Three Fields
 
 **Engineering** — Building, repairing, expanding, and salvaging robots.
-- *Construction* — walls, structures, hub expansion
+- *Construction* — walls, structures, Hub expansion
 - *Mechanics* — repair, robot dismantling, salvage processing
 
-**Gunnery** — Turret operation, direct combat, and hunting.
-- *Marksman* — precision targeting, single-unit combat
-- *Hunter* — food via hunting; doubles as combat capability
+**Gunnery** — Turret and hunting tower operation. Gunners don't carry weapons — they operate stationary structures. Higher skill means faster fire rate.
+- *Marksman* — precision targeting, optimized for combat turrets
+- *Hunter* — operates hunting towers; draws food from the world
 
 **Harvesting** — Gathering resources and hauling.
 - *Miner* — ore, stone
@@ -67,7 +77,7 @@ A worker receives their name and appearance when they first earn a specialty. Un
 
 ### Sub-Field Abilities
 
-Workers will develop smaller abilities and traits within their fields beyond their sub-specialty. This system is planned but not yet designed — see Future section.
+Workers will develop smaller abilities and traits within their fields beyond their sub-specialty. This system is planned but not yet designed.
 
 ---
 
@@ -117,9 +127,19 @@ Early-game hauling is done on foot. Railroads are laid directly by the player on
 
 ---
 
+## Hunting Towers
+
+Hunting towers are structures that can be placed anywhere on the map — they don't need to be near a Hub. Animals roam the world and are drawn toward or pass near hunting towers. An assigned Gunner/Hunter operates a hunting tower the same way they'd operate a combat turret.
+
+Hunting towers are the primary early-game food source before farming is established. Robots may occasionally target them, but they are not primary targets. This makes them relatively safe to place in the field.
+
+What hunting towers consume (traps, bait, ammo) is not yet designed.
+
+---
+
 ## The Job Board
 
-The Job Board is the colony's task management system. Every available task — mining, construction, hauling, combat, farming — exists as a job on the board with a priority level and a location. Workers automatically claim the highest-priority job they can reach, weighted by proximity.
+The Job Board is the colony's task management system. Every available task — mining, construction, hauling, farming, hunting, dismantling — exists as a job on the board with a priority level and a location. Workers automatically claim the highest-priority job they can reach, weighted by proximity.
 
 Players can override this at any time by Force Tasking a worker to a specific job, locking them to it until released. The board is shared across all players — any of the four can assign or reassign any worker.
 
@@ -129,7 +149,7 @@ When a new job is posted or a job is completed, workers re-evaluate their assign
 
 ## Possession
 
-Either player can possess any worker at any time. In possession mode, the camera shifts to 1st person and the player controls that worker directly — faster, stronger, and more capable than their AI self. Possession gives a direct bonus to the worker's abilities.
+Any player can possess any worker at any time. In possession mode, the camera shifts to 1st person and the player controls that worker directly — faster, stronger, and more capable than their AI self. Possession gives a direct bonus to all of the worker's abilities.
 
 Workers don't possess turrets directly. A Gunner operates a turret — possessing the Gunner gives the player direct control of that turret through them.
 
@@ -137,7 +157,17 @@ All of a possessed worker's skills apply passively. A possessed Engineer builds 
 
 The possessed worker can die. The player returns to the strategic view. The game doesn't end — but losing a veteran worker is a real loss.
 
-Possessed workers are highlighted so the other player knows not to attempt possession of the same unit.
+Possessed workers are highlighted so other players know not to attempt possession of the same unit.
+
+---
+
+## Recall
+
+Any player can sound a colony-wide recall from the strategic view. All non-possessed workers immediately drop their current task and path to their nearest Hub.
+
+When the recall is lifted, workers re-evaluate the Job Board as normal. Their interrupted job is still on the board — and since they were likely already closest to it, they usually reclaim it. If another worker took it in the meantime, they move on to the next best thing.
+
+Possessed workers are exempt from recall.
 
 ---
 
@@ -155,8 +185,13 @@ The Three Ages are a way of thinking about progression, not a hard rule. A playe
 
 ## Future / Long-Term
 
-- **Sub-Field Abilities** — Minor worker traits and abilities within their field that don't constitute a full specialty. To be designed.
-- **Branching Skill Tree** — Sub-specialties deepen as workers level up. Structure and unlock conditions TBD.
-- **Food Variety System** — A wider variety of foods in the colony's food supply raises the food level beyond what quantity alone achieves.
-- **World Progression** — Colonizing the full planet is the goal. What comes after is an open question.
-- **The Awakening** — The triggering event that starts the robot attacks is not yet finalized. The temple idea — entering a structure that activates all robots simultaneously — is the leading concept.
+See `FUTURE.md` for the full list of ideas outside MVP scope. Key items:
+
+- Sub-Field Abilities & Branching Skill Tree
+- Food Variety System
+- Weather (cloudy days reduce robot strength)
+- Covered structures / robot shade mechanic, and rover power extension as a counter
+- Per-Hub and auto-recall
+- Skill gates on high-tier objects
+- The Awakening — triggering event narrative
+- World Progression beyond the first planet
