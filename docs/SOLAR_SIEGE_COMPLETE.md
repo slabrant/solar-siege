@@ -1,6 +1,6 @@
-# The Solar Siege — Design Document Compilation
+# Solar Siege — Design Document Compilation
 
-This document compiles the complete design and technical documentation for The Solar Siege. It is organized for review and print.
+This document compiles the complete design and technical documentation for Solar Siege. It is organized for review and print.
 
 ## Contents
 
@@ -18,7 +18,7 @@ This document compiles the complete design and technical documentation for The S
    9. Recall
    10. Resource Pipeline
    11. Transport
-   12. Turret
+   12. Tower
    13. Hunting Tower
    14. Processing Building
    15. Production Building
@@ -31,7 +31,7 @@ This document compiles the complete design and technical documentation for The S
 
 # Part 1 — Game Design Document
 
-# The Solar Siege — Game Design Document
+# Solar Siege — Game Design Document
 
 **Engine:** Godot 4.6.2
 **Genre:** Cooperative Tower Defense / Automation Strategy
@@ -41,7 +41,7 @@ This document compiles the complete design and technical documentation for The S
 
 ## What Is This Game?
 
-A cooperative tower defense game that uses automation and possession. A group of colonizers lands on an unknown world and starts building. As they push further out, something stirs. After a triggering event — entering a structure, crossing a threshold — robots begin activating across the world, attacking during the day and freezing at night.
+A cooperative tower defense game that uses automation and possession. A group of colonists lands on an unknown world and starts building. As they push further out, something stirs. After a triggering event — entering a structure, crossing a threshold — robots begin activating across the world, attacking during the day and freezing at night.
 
 Players manage the colony from a top-down strategic view, but can drop into any worker at any time for direct 1st-person control. Every worker levels up, develops a specialty, and becomes someone worth protecting.
 
@@ -49,17 +49,15 @@ Players manage the colony from a top-down strategic view, but can drop into any 
 
 ## The World
 
-The colonizers don't know what they've landed on. The robots are part of the world they're colonizing — but their origin is not presented upfront. The player discovers this gradually. The early game is peaceful: build, gather, explore. The threat emerges from the world itself.
+The robots are part of the world they're colonizing — but their origin is not presented upfront. The player discovers this gradually. The early game is peaceful: build, gather, explore. The threat emerges from the world itself.
 
 ---
 
 ## Core Loop
 
-**Daytime:** Robots attack. Turrets fire, workers build and repair. Any worker can be possessed for direct control.
+**Daytime:** Robots attack. Towers fire, workers build and repair.
 
 **Nighttime:** Robots freeze in place. Workers salvage scraps, expand the colony, and prepare for the next day.
-
-**The pressure:** Everything runs on resources. Turrets need ammo, workers need food, structures need materials. None of it is free.
 
 ---
 
@@ -73,7 +71,7 @@ Robot strength follows the arc of the sun. They're at peak power at Noon and wea
 
 Workers are the heart of the colony. Every worker starts as a nameless Recruit. As they gain experience, they develop a name, a specialty, and an appearance to match. A veteran worker looks and performs differently from a fresh one, and losing them matters.
 
-All workers can do all tasks. Skill level determines speed — not access. Colonists have no weapons and cannot fight — combat belongs entirely to turrets and hunting towers.
+All workers can do all tasks. Skill level determines speed — not access. Colonists have no weapons and cannot fight — combat belongs entirely to towers and hunting towers.
 
 ### Worker Color
 
@@ -91,26 +89,15 @@ All workers start dark gray. As levels increase, their color shifts toward the f
 - *Construction* — walls, structures, Hub expansion
 - *Mechanics* — repair, robot dismantling, salvage processing
 
-**Gunnery** — Turret and hunting tower operation. Gunners don't carry weapons — they operate stationary structures. Higher skill means faster fire rate.
-- *Marksman* — precision targeting, optimized for combat turrets
+**Gunnery** — Tower and hunting tower operation. Gunners don't carry weapons — they operate stationary structures. Higher skill means faster fire rate.
+- *Marksman* — precision targeting, optimized for combat towers
 - *Hunter* — operates hunting towers; draws food from the world
 
 **Harvesting** — Gathering resources and hauling.
 - *Miner* — ore, stone
 - *Lumberjack* — wood, trees
 - *Harvester-Farmer* — crops, foraging, gathering
-
-Hauling is a general Harvesting capability, not a sub-specialty. All Harvesters haul.
-
-### Specialty Titles
-
-A worker's highest field is their specialty. If two fields are both significantly elevated relative to everything else, the worker earns a dual title — *Gunner-Engineer*, for example. This is rare and meaningful.
-
-A worker receives their name and appearance when they first earn a specialty. Until then they are a nameless Recruit.
-
-### Sub-Field Abilities
-
-Workers will develop smaller abilities and traits within their fields beyond their sub-specialty. This system is planned but not yet designed.
+- *Hauler* — general resource gathering and hauling
 
 ---
 
@@ -134,7 +121,7 @@ Hubs are the anchor points of the colony. Workers spawn from Hubs but are free t
 
 ## Robot Salvage
 
-Robots have two separate values: health and scrap. The player only sees the health bar. When turrets or workers damage a robot, both health and scrap go down together. When Engineers dismantle a frozen robot, only health goes down — scrap is preserved. This means careful dismantling at night always yields more than gunning a robot down during the day.
+Robots have two separate values: health and scrap. The player only sees the health bar. When towers or workers damage a robot, both health and scrap go down together. When Engineers dismantle a frozen robot, only health goes down — scrap is preserved. This means careful dismantling at night always yields more than gunning a robot down during the day.
 
 A robot collapses into scrap when its health reaches zero. Scrap is hauled back to a processing building to be broken down into usable materials, including Solite.
 
@@ -154,7 +141,7 @@ Robots can be hauled back while still functional — but a live robot inside the
 
 ## Production & Manufacturing
 
-Resources don't go directly into buildings — they're processed first. Production buildings convert raw materials into usable parts: ammo, components, building materials. This means the colony needs a supply chain: gather → haul → process → use.
+Resources don't go directly into buildings — they're processed first. Production buildings convert raw materials into usable parts: ammo, components, building materials. This means the colony needs a supply chain: gather → haul → process → haul → produce → haul → consume.
 
 Early-game hauling is done on foot. Railroads are laid directly by the player on the map — workers and railcars then path along them automatically. They're cheap, require no Solite, and dramatically cut haul distances. Conveyor belts come later, require Solite to build, and automate the flow entirely.
 
@@ -162,7 +149,7 @@ Early-game hauling is done on foot. Railroads are laid directly by the player on
 
 ## Hunting Towers
 
-Hunting towers are structures that can be placed anywhere on the map — they don't need to be near a Hub. Animals roam the world and are drawn toward or pass near hunting towers. An assigned Gunner/Hunter operates a hunting tower the same way they'd operate a combat turret.
+Hunting towers are structures that can be placed anywhere on the map — they don't need to be near a Hub. Animals roam the world and are drawn toward or pass near hunting towers. An assigned Gunner/Hunter operates a hunting tower the same way they'd operate a combat tower.
 
 Hunting towers are the primary early-game food source before farming is established. Robots may occasionally target them, but they are not primary targets. This makes them relatively safe to place in the field.
 
@@ -174,7 +161,7 @@ What hunting towers consume (traps, bait, ammo) is not yet designed.
 
 The Job Board is the colony's task management system. Every available task — mining, construction, hauling, farming, hunting, dismantling — exists as a job on the board with a priority level and a location. Workers automatically claim the highest-priority job they can reach, weighted by proximity.
 
-Players can override this at any time by Force Tasking a worker to a specific job, locking them to it until released. The board is shared across all players — any of the four can assign or reassign any worker.
+Players can override this at any time by Force Tasking a worker to a specific job, locking them to it until released. The board is shared across all players — anyone can assign or reassign any worker.
 
 When a new job is posted or a job is completed, workers re-evaluate their assignments automatically. A worker mid-task will abandon it for something more urgent unless Force Tasked.
 
@@ -184,7 +171,7 @@ When a new job is posted or a job is completed, workers re-evaluate their assign
 
 Any player can possess any worker at any time. In possession mode, the camera shifts to 1st person and the player controls that worker directly — faster, stronger, and more capable than their AI self. Possession gives a direct bonus to all of the worker's abilities.
 
-Workers don't possess turrets directly. A Gunner operates a turret — possessing the Gunner gives the player direct control of that turret through them.
+Workers don't possess towers directly. A Gunner operates a tower — possessing the Gunner gives the player direct control of that tower through them.
 
 All of a possessed worker's skills apply passively. A possessed Engineer builds faster. A possessed Gunner shoots better. A possessed Harvester gathers more.
 
@@ -216,24 +203,9 @@ The Three Ages are a way of thinking about progression, not a hard rule. A playe
 
 ---
 
-## Future / Long-Term
-
-See `FUTURE.md` for the full list of ideas outside MVP scope. Key items:
-
-- Sub-Field Abilities & Branching Skill Tree
-- Food Variety System
-- Weather (cloudy days reduce robot strength)
-- Covered structures / robot shade mechanic, and rover power extension as a counter
-- Per-Hub and auto-recall
-- Skill gates on high-tier objects
-- The Awakening — triggering event narrative
-- World Progression beyond the first planet
-
----
-
 # Part 2 — Technical Design Document
 
-# The Solar Siege — Technical Design Document
+# Solar Siege — Technical Design Document
 
 **Engine:** Godot 4.6.2
 **Physics:** Jolt Physics
@@ -273,13 +245,13 @@ Main
 ├── Workers (group: "Workers")   # spawned at runtime by Hubs
 ├── Robots (group: "Robots")     # spawned at dawn after awakening
 ├── Structures
-│   ├── Turret
+│   ├── Tower
 │   ├── HuntingTower
 │   ├── ProcessingBuilding
 │   ├── ProductionBuilding
 │   └── ConveyorBelt / RailTrack
 └── Cameras
-    └── RTSCamera (one per player, local only — not synced)
+    └── StrategicCamera (one per player, local only — not synced)
 ```
 
 ---
@@ -393,17 +365,18 @@ Health doubles as XP yield — a 200hp tree gives 200 Harvesting XP. All values 
 
 ### Natural Resources
 
-| Object | Health | Field |
-|---|---|---|
-| Small tree | 100 | Harvesting |
-| Large tree | 300 | Harvesting |
-| Ore deposit (small) | 150 | Harvesting |
-| Ore deposit (large) | 500 | Harvesting |
-| Basic crop | 20 | Harvesting |
-| Premium crop | 100 | Harvesting |
-| Foraged item | 10 | Harvesting |
-| Small animal | 80 | Gunnery |
-| Large animal | 250 | Gunnery |
+| Object              | Health | Field        |
+|---------------------|--------|--------------|
+| Small tree          | 100    | Harvesting   |
+| Large tree          | 300    | Harvesting   |
+| Ore deposit (small) | 150    | Harvesting   |
+| Ore deposit (large) | 500    | Harvesting   |
+| Basic crop          | 20     | Harvesting   |
+| Premium crop        | 100    | Harvesting   |
+| Foraged item        | 10     | Harvesting   |
+| Bunny               | 60     | Gunnery      |
+| Turkey              | 120    | Gunnery      |
+| Deer                | 240    | Gunnery      |
 
 ### Robots
 
@@ -416,17 +389,18 @@ Health doubles as XP yield — a 200hp tree gives 200 Harvesting XP. All values 
 
 Building and repairing a structure awards Engineering XP equal to health points added or restored.
 
-| Structure | Health |
-|---|---|
-| Wall segment | 200 |
-| Reinforced wall | 600 |
-| Basic turret | 400 |
-| Hunting tower | 300 |
-| Processing building | 800 |
-| Production building | 1000 |
-| Hub | 3000 |
-| Rail track segment | 50 |
-| Conveyor segment | 100 |
+| Structure           | Health |
+|---------------------|--------|
+| Wall segment I      | 200    |
+| Wall segment II     | 400    |
+| Wall segment III    | 600    |
+| Basic tower         | 400    |
+| Hunting tower       | 300    |
+| Processing building | 800    |
+| Production building | 1000   |
+| Hub                 | 3000   |
+| Rail track segment  | 50     |
+| Conveyor segment    | 120    |
 
 ---
 
@@ -537,7 +511,7 @@ func _on_haul_progress(meters: float) -> void:
 
 ## Worker Color
 
-Clothing color is a live visual readout of skill level — no UI needed.
+Clothing color is a live visual readout of skill level.
 
 ```gdscript
 func _update_color() -> void:
@@ -595,13 +569,11 @@ func _on_specialty_changed() -> void:
 
 ### Sub-Specialties
 
-| Field | Sub-Specialties |
-|---|---|
-| Engineering | Construction, Mechanics |
-| Gunnery | Marksman, Hunter |
-| Harvesting | Miner, Lumberjack, Harvester-Farmer |
-
-Unlock logic is not yet designed — see FUTURE.md.
+| Field        | Sub-Specialties                     |
+|--------------|-------------------------------------|
+| Engineering  | Construction, Mechanics             |
+| Gunnery      | Marksman, Hunter                    |
+| Harvesting   | Miner, Lumberjack, Harvester-Farmer |
 
 ---
 
@@ -623,7 +595,7 @@ Well-Fed bonus is applied externally by FoodManager to XP gain rate and speed.
 
 ## Colonists Cannot Attack
 
-Workers have no weapons and cannot engage in combat. Combat is handled exclusively by turrets and hunting towers, operated by Gunners.
+Workers have no weapons and cannot engage in combat. Combat is handled exclusively by towers and hunting towers, operated by Gunners.
 
 ---
 
@@ -694,7 +666,7 @@ func on_possess(player_id: int) -> void:
 func on_unpossess() -> void:
     is_possessed = false
     possessing_player = -1
-    # camera returns to player's RTSCamera
+    # camera returns to player's StrategicCamera
     _find_new_job()
 
 func _die() -> void:
@@ -836,7 +808,7 @@ Force-tasked workers ignore `jobs_updated` entirely until `release_task()` is ca
 
 ## Player Interaction
 
-All players (up to 4) can:
+All players can:
 - View the job board state
 - Issue a Force Task to any worker (calls `worker.force_task(job)`)
 - Release a Force Task (calls `worker.release_task()`)
@@ -890,9 +862,9 @@ Frozen robots do not move or attack but retain full interactability. Workers can
 
 ---
 
-## Combat Damage (Turrets)
+## Combat Damage (Towers)
 
-Both `health` and `scrap` are reduced proportionally on each hit. The assigned Gunner earns Gunnery XP equal to the health damage dealt — but only when actively operating the turret (possessed or manually assigned and present).
+Both `health` and `scrap` are reduced proportionally on each hit. The assigned Gunner earns Gunnery XP equal to the health damage dealt — but only when actively operating the tower (possessed or manually assigned and present).
 
 ```gdscript
 func take_combat_damage(amount: float):
@@ -978,19 +950,9 @@ func _on_phase_changed(phase: SolarCycle.DayPhase) -> void:
 
 ---
 
-## Hauling While Functional
-
-A functional robot can be hauled by workers toward the base. It will continue to attack anything in range while being moved. This is intentional — it's a player risk/reward decision.
-
-Hauling mechanic: worker navigates to robot, robot becomes "cargo" and is dragged along the worker's path. If the worker is killed or releases the robot, it resumes autonomous behavior immediately.
-
----
-
 ## Awakening
 
-Robots do not spawn or activate until the awakening trigger fires. A global `GameState.robots_awakened` bool gates all spawning. On trigger, the first wave spawns at the next dawn.
-
-Wave spawning, timing, escalation, and difficulty scaling are in FUTURE.md.
+Robots do not spawn or activate until the awakening trigger fires. A global `GameState.robots_awakened` bool gates all spawning. The triggering robot is when the first robot is dismantled.
 
 ---
 
@@ -1086,7 +1048,6 @@ Consumers compare against `SolarCycle.DayPhase.DAY` or `SolarCycle.DayPhase.NIGH
 | System | What it listens to |
 |---|---|
 | Robot | `phase_changed` — freeze/thaw; `get_solar_strength()` — speed/damage scaling |
-| Turret | `phase_changed` — optional behavior changes |
 | UI | `hour_changed` — clock display |
 | GameState | `phase_changed` — triggers wave spawning at dawn |
 
@@ -1130,16 +1091,10 @@ class_name ResourceBuffer extends Node
 signal buffer_changed(type: String, amount: float)
 signal buffer_empty(type: String)
 
-var capacities: Dictionary = {
-    "Ammo":    500.0,
-    "Metal":   1000.0,
-    "Lumber":  1000.0,
-    "Solite":  200.0,
-    "Iridium": 50.0,
-}
-var current: Dictionary = {
+var amounts: Dictionary = {
     "Ammo":    0.0,
     "Metal":   0.0,
+    "Stone":   0.0,
     "Lumber":  0.0,
     "Solite":  0.0,
     "Iridium": 0.0,
@@ -1154,7 +1109,7 @@ func get_fill_percent(type: String) -> float
 
 ## Spawning Recruits
 
-Recruits are spawned manually by players, not on a timer. Any player can click any Hub to add a Recruit to its spawn queue.
+Any player can click any Hub to add a Recruit to its spawn queue.
 
 **Rules:**
 - Each spawn request deducts a fixed food cost immediately from the global food pool (see `RECRUIT_FOOD_COST` in Balance.md)
@@ -1193,15 +1148,13 @@ func _spawn_recruit() -> void:
 
 ## Resource Delivery
 
-Workers (and railcars and belts) deliver resources to the Hub's buffer by calling `buffer.add_resource(type, amount)`. The Hub does not pull resources — it only receives them.
-
-Food deliveries are routed to the global food pool (FoodManager), not the Hub's local buffer.
+Food deliveries are routed to the global food pool (FoodManager), not the Hub's local amounts.
 
 ---
 
 ## Structure Consumption
 
-Turrets and other structures near a Hub draw ammo from its buffer automatically via `buffer.consume_resource("Ammo", amount)`. If the buffer runs dry, the structure stops functioning until resupplied.
+Towers and other structures near a Hub draw ammo from its buffer automatically via `buffer.consume_resource("Ammo", amount)`. If the buffer runs dry, the structure stops functioning until resupplied.
 
 Structures query the nearest Hub in their group at `_ready`. If no Hub is within range, the structure cannot operate. Range threshold is in OPEN_QUESTIONS.md.
 
@@ -1238,8 +1191,6 @@ func _drop_buffer_contents() -> void:
     get_parent().add_child(pile)
     pile.global_position = global_position
 ```
-
-Engineers can repair damaged Hubs, gaining Engineering XP equal to health restored.
 
 When a Hub is destroyed:
 - All resources in its `ResourceBuffer` drop as a haulable pile at the Hub's location
@@ -1279,14 +1230,14 @@ signal hub_destroyed()
 - `Worker` — spawned here; deliver resources here
 - `ResourceBuffer` — local storage for non-food resources
 - `JobBoard` — posts BUILD jobs when a new Hub is queued; posts HAULING jobs when buffer is low
-- `Turret` / structures — consume from buffer
+- `Tower` / structures — consume from buffer
 
 ---
 
 # System: Food
 
 ## Purpose
-Food keeps the colony alive and productive. The workforce's nutrition state affects worker output and whether new workers can be produced. Food is a shared colonial resource — all Hubs draw from the same pool.
+Food keeps the colony growing and productive. The workforce's nutrition state affects worker output and whether new workers can be produced. Food is a shared colonial resource — all Hubs draw from the same pool.
 
 ---
 
@@ -1296,10 +1247,10 @@ Food keeps the colony alive and productive. The workforce's nutrition state affe
 enum NutritionState { HUNGRY, NORMAL, WELL_FED }
 ```
 
-| State | Condition | Effect |
-|---|---|---|
-| Hungry | Food pool below hungry threshold | Worker production halted |
-| Normal | Food pool between thresholds | No modifier |
+| State    | Condition                          | Effect                                  |
+|----------|------------------------------------|-----------------------------------------|
+| Hungry   | Food pool below hungry threshold   | Worker production impossible            |
+| Normal   | Food pool between thresholds       | No modifier                             |
 | Well-Fed | Food pool above well-fed threshold | Speed and XP gain bonus for all workers |
 
 Both thresholds scale with current workforce size (queried from the `"Workers"` group):
@@ -1371,12 +1322,6 @@ Workers do not need to be near a Hub to receive the bonus. It applies to all wor
 
 ---
 
-## Worker Production Gate
-
-New Recruits cannot spawn from any Hub while `NutritionState == HUNGRY`. The spawn UI should reflect this clearly.
-
----
-
 ## Signals
 
 ```gdscript
@@ -1398,7 +1343,7 @@ signal food_delivered(amount: float, source: String)
 # System: Possession
 
 ## Purpose
-Any of the four players can drop into any worker at any time for direct 1st-person control. Possession gives the player full control of that worker with a bonus to all their abilities. See the GDD for design intent.
+Any player can drop into any worker at any time for direct 1st-person control. Possession gives the player full control of that worker with a bonus to all their abilities.
 
 ---
 
@@ -1421,7 +1366,7 @@ var possessed: Dictionary = {
 - A worker can only be possessed by one player at a time
 - A player can only possess one worker at a time
 - Possessed workers are highlighted visually for all players
-- Escape exits possession and returns the player to their RTS camera
+- Escape exits possession and returns the player to their strategic view
 
 ---
 
@@ -1461,30 +1406,18 @@ Applied inside `Worker.get_task_speed()` when `is_possessed` is true. All skill 
 
 ---
 
-## Gunners & Turrets
+## Gunners & Towers
 
-Workers don't possess turrets directly. A Gunner operates a turret — possessing the Gunner puts the player in direct control through them. The Gunner's skill and possession bonus both apply to fire rate.
+Workers don't possess towers directly. A Gunner operates a tower — possessing the Gunner puts the player in direct control through them. The Gunner's skill and possession bonus both apply to fire rate.
 
 ```gdscript
-# Turret — applies assigned worker's Gunnery skill to fire rate
+# Tower — applies assigned worker's Gunnery skill to fire rate
 func _fire() -> void:
     var skill_bonus = 1.0
     if assigned_worker:
         skill_bonus = 1.0 + assigned_worker.levels["Gunnery"] * SPEED_SCALE  # see Balance.md
     # apply skill_bonus to fire rate
 ```
-
----
-
-## Death While Possessed
-
-Handled in `Worker._die()`. The player is returned to their RTS view. The game does not end.
-
----
-
-## Visual Indicator
-
-Possessed workers display a distinct highlight visible to all players, differentiated by player. Implementation not yet decided — see OPEN_QUESTIONS.md.
 
 ---
 
@@ -1499,7 +1432,7 @@ signal possession_changed(player_id: int, unit: Node3D, is_possessed: bool)
 ## Dependencies
 
 - `Worker` — implements `on_possess` / `on_unpossess`
-- `RTSCamera` — each player's strategic camera
+- `StrategicCamera` — each player's strategic camera
 - `InputManager` (planned) — per-player input remapping
 
 ---
@@ -1513,7 +1446,7 @@ The Recall action lets any player instantly pull all non-possessed workers back 
 
 ## Trigger
 
-Activated by a player action from the strategic (RTS) view. Global — affects all workers on the map simultaneously. There is no per-Hub or per-worker granularity at this time.
+Activated by a player action from the strategic view. Global — affects all workers on the map simultaneously. There is no per-Hub or per-worker granularity at this time.
 
 ---
 
@@ -1591,138 +1524,6 @@ Workers are not tied to a specific Hub — nearest at the time of recall determi
 signal recall_triggered()
 signal recall_released()
 ```
-
----
-
-# System: Resource Pipeline
-
-## Purpose
-Raw materials are gathered in the world and must be processed before they become usable. Nothing goes directly from the ground (or a robot) into a building. The pipeline is: gather → haul → process → use.
-
----
-
-## Resource Types
-
-| Resource | Source | Raw or Processed |
-|---|---|---|
-| Wood | Trees (Lumberjacks) | Raw |
-| Ore | Rock deposits (Miners) | Raw |
-| Food | Farms, foraging, hunting | Raw |
-| Scrap | Robot death | Raw |
-| ShinyScrap | Heavy robot death | Raw |
-| Lumber | Wood → Processing Building | Processed |
-| Metal | Ore → Processing Building | Processed |
-| Ammo | Metal + other → Production Building | Processed |
-| Solite | Scrap → Processing Building (variable yield) | Processed |
-| Iridium | ShinyScrap → Processing Building | Processed |
-| Building Materials | Lumber + Metal → Production | Processed |
-
----
-
-## Processing Buildings
-
-Processing buildings accept specific raw inputs and produce processed outputs. Processing is time-based; worker skill (Engineering/Mechanics) scales processing speed.
-
-### Scrap Processor
-
-- **Input:** Scrap
-- **Output:** Metal parts + Solite (variable yield, random per batch within a range)
-- Solite yield is not determined at robot death — it is determined here
-
-### Shiny Scrap Processor
-
-- **Input:** ShinyScrap
-- **Output:** Metal parts + Iridium + Solite (variable yield)
-- May be the same building as Scrap Processor with a different processing mode, or a separate building — see OPEN_QUESTIONS.md
-
-### Lumber Mill
-
-- **Input:** Wood
-- **Output:** Lumber
-
-### Smelter
-
-- **Input:** Ore
-- **Output:** Metal
-
-### Production Building (Factory)
-
-- **Input:** Processed materials (Metal, Lumber, Solite)
-- **Output:** Ammo, Building Materials, Components
-- Ammo production is the primary use — turrets require a steady ammo supply
-
----
-
-## Flow Diagram
-
-```
-[World]                    [Processing]              [Use]
-Trees    → Haul → Lumber Mill    → Lumber    → Factory → Building Materials
-Ore      → Haul → Smelter        → Metal     → Factory → Ammo / Components
-Scrap    → Haul → Scrap Proc.    → Metal + Solite
-ShinyScrap → Haul → Shiny Proc.  → Metal + Iridium + Solite
-Food     → Haul → Hub Food Pool  → (colony-wide Well-Fed state)
-```
-
----
-
-## Hauling
-
-Workers carry raw materials from source to processor, and processed materials from processor to Hub or construction site.
-
-Haul capacity is fixed per worker (not skill-based) — exact value in OPEN_QUESTIONS.md.
-
-### Transport Options
-
-1. **On foot** — worker carries manually; slowest, no infrastructure required
-2. **Railcar** — player lays track; railcars path along track automatically; cheap, no Solite required
-3. **Conveyor Belt** — requires Solite to build; fully automated; end-game
-
----
-
-## Resource Pile
-
-When a robot dies or a Hub is destroyed, a `ResourcePile` node spawns at its location holding the dropped resources. A single scene handles both cases — its contents are configured at spawn time.
-
-```gdscript
-class_name ResourcePile extends Node3D
-
-var contents: Dictionary = {}              # resource type → amount, e.g. { "Scrap": 100.0, "Solite": 5.0 }
-var is_being_hauled: bool = false
-var hauler: Node3D = null
-```
-
-Workers claim a ResourcePile by setting `hauler` and `is_being_hauled`. Unclaimed piles are visible to all workers and appear on the Job Board as HAULING jobs.
-
-### Common spawn cases
-
-- **Robot death** — `contents = { "Scrap": robot.scrap }` (or `"ShinyScrap"` if the robot was heavy)
-- **Hub destruction** — `contents = buffer.current.duplicate()` (the full Hub buffer)
-
-A pile may contain multiple resource types. Workers handle multi-type piles by hauling each type in separate trips, or in one trip if their inventory has room for all.
-
----
-
-## Signals
-
-```gdscript
-# Processing Building
-signal processing_complete(output_type: String, amount: float)
-signal processing_started(input_type: String)
-
-# ResourcePile
-signal claimed(worker: Node3D)
-signal delivered()
-```
-
----
-
-## Dependencies
-
-- `Worker` — hauls materials
-- `JobBoard` — auto-posts HAULING jobs when ResourcePiles spawn, and when processing buildings have output ready
-- `Hub` — receives processed materials into local buffer
-- `Transport` system — railcars and belts move materials automatically
 
 ---
 
@@ -1844,17 +1645,17 @@ signal item_exited(type: String, progress_destination: Node3D)
 
 ---
 
-# System: Turret
+# System: Tower
 
 ## Purpose
-Turrets are stationary combat structures placed by the player. They target robots automatically and fire when ammo is available. A turret can be assigned a Gunner, whose Gunnery skill scales the turret's fire rate. Possessing the assigned Gunner gives the player direct control through them.
+Towers are stationary combat structures placed by the player. They target robots automatically and fire when ammo is available. A tower can be assigned a Gunner, whose Gunnery skill scales the tower's fire rate. Possessing the assigned Gunner gives the player direct control through them.
 
 ---
 
 ## Data
 
 ```gdscript
-class_name Turret extends StaticBody3D
+class_name Tower extends StaticBody3D
 
 @export var max_health: float = 400.0
 @export var base_fire_rate: float = 1.0    # shots per second at level 0 Gunnery
@@ -1899,10 +1700,10 @@ func _on_timer_timeout() -> void:
 
 func _fire() -> void:
     target.take_combat_damage(damage)
-    turret_fired.emit(target)
+    tower_fired.emit(target)
 ```
 
-Higher Gunnery skill shortens the wait between shots — the turret fires faster.
+Higher Gunnery skill shortens the wait between shots — the tower fires faster.
 
 ---
 
@@ -1915,31 +1716,31 @@ func take_damage(amount: float) -> void:
         _die()
 
 func _die() -> void:
-    turret_destroyed.emit()
+    tower_destroyed.emit()
     queue_free()
 ```
 
-Engineers can repair damaged turrets, gaining Engineering XP equal to health restored.
+Engineers can repair damaged towers, gaining Engineering XP equal to health restored.
 
 ---
 
 ## Gunner Assignment
 
-A Gunner can be assigned to a turret via a Job Board task or direct player command. While assigned, their Gunnery XP increases on each hit (see Robot.md combat damage). When possessed, the player controls the turret through them — see Possession.md.
+A Gunner can be assigned to a tower via a Job Board task or direct player command. While assigned, their Gunnery XP increases on each hit (see Robot.md combat damage). When possessed, the player controls the tower through them — see Possession.md.
 
 ---
 
 ## Ammo Supply
 
-Turrets pull ammo from the nearest Hub's `ResourceBuffer`. If the buffer is empty, the turret stops firing until resupplied. No local ammo storage.
+Towers pull ammo from the nearest Hub's `ResourceBuffer`. If the buffer is empty, the tower stops firing until resupplied. No local ammo storage.
 
 ---
 
 ## Signals
 
 ```gdscript
-signal turret_fired(target: Robot)
-signal turret_destroyed()
+signal tower_fired(target: Robot)
+signal tower_destroyed()
 ```
 
 ---
@@ -1988,7 +1789,7 @@ func _ready() -> void:
 
 ## Fire Logic
 
-Functionally similar to a Turret but targets animals instead of robots, and produces food on kill instead of damage to the colony.
+Functionally similar to a Tower but targets animals instead of robots, and produces food on kill instead of damage to the colony.
 
 ```gdscript
 func _on_timer_timeout() -> void:
@@ -2027,15 +1828,9 @@ func _die() -> void:
 
 ---
 
-## Consumables
-
-What hunting towers consume (traps, bait, ammo) is in FUTURE.md. For MVP they may operate without consumables, or share ammo with combat turrets — decision pending.
-
----
-
 ## Animal Attraction
 
-Animals within `attraction_radius` are drawn toward the tower. Exact pathing behavior is in FUTURE.md.
+Animals within `attraction_radius` are drawn toward the tower.
 
 ---
 
@@ -2110,24 +1905,15 @@ func _produce_output() -> void:
 
 ---
 
-## Variants
+## Resource Types
 
-### Scrap Processor
-- Input: `Scrap`
-- Output: `Metal` + variable `Solite` yield (random per batch)
-
-### Shiny Scrap Processor
-- Input: `ShinyScrap`
-- Output: `Metal` + `Iridium` + variable `Solite` yield
-- May share a building with Scrap Processor — see OPEN_QUESTIONS.md
-
-### Smelter
-- Input: `Ore`
-- Output: `Metal`
-
-### Lumber Mill
-- Input: `Wood`
-- Output: `Lumber`
+| Resource           | Source                                       | Raw or Processed |
+|--------------------|----------------------------------------------|------------------|
+| Wood               | Trees (Lumberjacks)                          | Raw              |
+| Ore                | Rock deposits (Miners)                       | Raw              |
+| Food               | Farms, foraging, hunting                     | Raw              |
+| Scrap              | Robot death                                  | Raw              |
+| ShinyScrap         | Heavy robot death                            | Raw              |
 
 ---
 
@@ -2210,13 +1996,15 @@ class_name Recipe extends Resource
 @export var outputs: Dictionary = {}      # type → amount produced
 ```
 
+---
+
 ### Example Recipes
 
-| Recipe | Inputs | Outputs |
-|---|---|---|
-| Ammo | 2 Metal | 10 Ammo |
-| Building Materials | 1 Metal + 1 Lumber | 1 Building Materials |
-| Advanced Components | 1 Metal + 1 Solite | 1 Components |
+| Recipe              | Inputs             | Outputs              |
+|---------------------|--------------------|----------------------|
+| Ammo                | 2 Metal            | 10 Ammo              |
+| Building Materials  | 1 Metal + 1 Lumber | 1 Building Materials |
+| Advanced Components | 1 Metal + 1 Solite | 1 Components         |
 
 Specific recipe balancing belongs in Balance.md once recipes are finalized.
 
@@ -2302,7 +2090,7 @@ signal building_destroyed()
 # System: Multiplayer
 
 ## Purpose
-The Solar Siege supports up to 4 cooperative players. One player hosts a server; others join as clients. All players share the same game state, Job Board, and colony. Any player can possess any worker and issue any command.
+Solar Siege supports up to 4 cooperative players. One player hosts a server; others join as clients. All players share the same game state, Job Board, and colony. Any player can possess any worker and issue any command.
 
 ---
 
@@ -2379,7 +2167,7 @@ func request_possess(unit_path: NodePath):
 All players share:
 - The Job Board (any player can post, assign, or force-task)
 - The possession system (any player can possess any available worker)
-- The RTS camera (each player has their own camera, independently positioned)
+- The strategic view (each player has their own camera, independently positioned)
 
 No player has exclusive ownership of workers or structures. Coordination is a social contract, not an enforced mechanic.
 
@@ -2387,7 +2175,7 @@ No player has exclusive ownership of workers or structures. Coordination is a so
 
 ## Player Cameras
 
-Each player maintains their own `RTSCamera` instance. Camera positions are local — not synced. When a player possesses a worker, their camera switches to the worker's 1st-person camera. On unpossess, it returns to their personal RTS camera at its last position.
+Each player maintains their own `StrategicCamera` instance. Camera positions are local — not synced. When a player possesses a worker, their camera switches to the worker's 1st-person camera. On unpossess, it returns to their personal strategic view at its last position.
 
 ---
 
@@ -2402,7 +2190,7 @@ Each player maintains their own `RTSCamera` instance. Camera positions are local
 
 # Part 4 — Future / Long-Term Ideas
 
-# The Solar Siege — Future & Long-Term Ideas
+# Solar Siege — Future & Long-Term Ideas
 
 Everything here is explicitly out of scope for the MVP. Items are organized by system. Nothing in this document is designed — these are seeds for later.
 
@@ -2464,8 +2252,6 @@ Everything here is explicitly out of scope for the MVP. Items are organized by s
 
 ## Recall
 
-- **Per-Hub recall** — Requires home Hub assignment. Pull back frontier workers independently of base workers.
-- **Auto-recall** — Optional setting to automatically recall all workers at a configurable time before dawn.
 - **Recall bell visual/audio** — A world-space cue so all players know the recall fired.
 
 ---
@@ -2504,7 +2290,7 @@ Everything here is explicitly out of scope for the MVP. Items are organized by s
 
 # Part 5 — Open Questions
 
-# The Solar Siege — Open Questions
+# Solar Siege — Open Questions
 
 Implementation questions that need a decision before or during development. Organized by system. These are not shelved features — see FUTURE.md for those.
 
