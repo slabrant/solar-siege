@@ -1,25 +1,20 @@
 # System: Processing Building
 
-## Purpose
-Processing Buildings convert raw materials into processed materials. They are the bridge between the world (gathered resources, robot scrap) and usable inventory. Each building type has specific inputs and outputs. Processing is time-based, with worker skill scaling speed.
-
-This document covers the general processing mechanic. Specific variants (Scrap Processor, Lumber Mill, Smelter, Shiny Scrap Processor) follow the same pattern with different inputs/outputs.
+Converts raw materials into processed materials. Base behavior is in SYSTEMS/Structure.md.
 
 ---
 
 ## Data
 
 ```gdscript
-class_name ProcessingBuilding extends StaticBody3D
+class_name ProcessingBuilding extends Structure
 
-@export var max_health: float = 800.0
-@export var input_type: String = ""        # e.g. "Scrap", "Wood", "Ore"
-@export var base_process_time: float = 10.0    # seconds per batch at level 0 Engineering
+@export var input_type: String           # e.g. "Scrap", "Wood", "Ore"
+@export var base_process_time: float = 10.0
 
-var health: float = max_health
-var input_queue: float = 0.0               # raw material waiting to be processed
-var output_queue: Dictionary = {}          # processed material waiting to be hauled out
-var assigned_worker: Worker = null         # operator; scales processing speed
+var input_queue: float = 0.0
+var output_queue: Dictionary = {}
+var assigned_operator: Colonist = null
 var process_progress: float = 0.0
 ```
 
@@ -29,12 +24,12 @@ var process_progress: float = 0.0
 
 ```gdscript
 func _process(delta: float) -> void:
-    if input_queue <= 0.0:
+    if not is_complete or input_queue <= 0.0:
         return
 
     var speed_bonus = 1.0
-    if assigned_worker:
-        speed_bonus = 1.0 + assigned_worker.levels["Engineering"] * SPEED_SCALE  # see Balance.md
+    if assigned_operator:
+        speed_bonus = 1.0 + assigned_operator.levels["Engineering"] * SPEED_SCALE  # see Balance.md
 
     process_progress += delta * speed_bonus
     if process_progress >= base_process_time:
@@ -43,7 +38,7 @@ func _process(delta: float) -> void:
         _produce_output()
 
 func _produce_output() -> void:
-    var outputs = _compute_outputs()   # specific to building type
+    var outputs = _compute_outputs()
     for type in outputs:
         output_queue[type] = output_queue.get(type, 0.0) + outputs[type]
         processing_complete.emit(type, outputs[type])
@@ -53,59 +48,28 @@ func _produce_output() -> void:
 
 ## Variants
 
-### Scrap Processor
-- Input: `Scrap`
-- Output: `Metal` + variable `Solite` yield (random per batch)
+| Variant               | Input      | Output                            |
+|-----------------------|------------|-----------------------------------|
+| Scrap Processor       | Scrap      | Metal + variable Solite           |
+| Shiny Scrap Processor | ShinyScrap | Metal + Iridium + variable Solite |
+| Smelter               | Ore        | Metal                             |
+| Lumber Mill           | Wood       | Lumber                            |
+| Stone Cutter          | Stone      | Stone (refined for masonry)       |
 
-### Shiny Scrap Processor
-- Input: `ShinyScrap`
-- Output: `Metal` + `Iridium` + variable `Solite` yield
-- May share a building with Scrap Processor — see OPEN_QUESTIONS.md
-
-### Smelter
-- Input: `Ore`
-- Output: `Metal`
-
-### Lumber Mill
-- Input: `Wood`
-- Output: `Lumber`
+Whether Scrap and Shiny Scrap share a building is in OPEN_QUESTIONS.md.
 
 ---
 
-## Input & Output Flow
+## Input & Output
 
-Workers, railcars, and conveyor belts deliver raw materials by adding to `input_queue`. Processed materials sit in `output_queue` until hauled out by workers (HAULING jobs posted automatically to the Job Board), or picked up by railcars/belts.
-
----
-
-## Damage & Destruction
-
-```gdscript
-func take_damage(amount: float) -> void:
-    health -= amount
-    if health <= 0:
-        _die()
-
-func _die() -> void:
-    building_destroyed.emit()
-    queue_free()
-```
-
-Engineers can repair damaged processing buildings, gaining Engineering XP equal to health restored.
+Materials arrive via the Structure `withdraw`/delivery interface. Output is pulled out the same way — `HAULING` jobs are auto-posted when output accumulates.
 
 ---
 
 ## Signals
 
+Inherits from Structure. Adds:
+
 ```gdscript
 signal processing_complete(output_type: String, amount: float)
-signal building_destroyed()
 ```
-
----
-
-## Dependencies
-
-- `Worker` — assigned operator; haulers move input and output
-- `JobBoard` — posts HAULING jobs for input demand and output supply
-- `Transport` system — railcars and belts as alternative input/output methods

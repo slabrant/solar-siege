@@ -1,4 +1,4 @@
-# The Solar Siege — Game Design Document
+# Solar Siege — Game Design Document
 
 **Engine:** Godot 4.6.2
 **Genre:** Cooperative Tower Defense / Automation Strategy
@@ -8,25 +8,17 @@
 
 ## What Is This Game?
 
-A cooperative tower defense game that uses automation and possession. A group of colonizers lands on an unknown world and starts building. As they push further out, something stirs. After a triggering event — entering a structure, crossing a threshold — robots begin activating across the world, attacking during the day and freezing at night.
+A cooperative tower defense game that uses automation and possession. A group of colonists lands on an unknown world, plants a flag, names the planet, and starts building. The early game is peaceful: gather, explore, build the first hub. Then something stirs — and robots begin attacking by day and freezing by night.
 
-Players manage the colony from a top-down strategic view, but can drop into any worker at any time for direct 1st-person control. Every worker levels up, develops a specialty, and becomes someone worth protecting.
-
----
-
-## The World
-
-The colonizers don't know what they've landed on. The robots are part of the world they're colonizing — but their origin is not presented upfront. The player discovers this gradually. The early game is peaceful: build, gather, explore. The threat emerges from the world itself.
+Players manage the colony from a top-down strategic view, but can drop into any colonist at any time for direct 1st-person control. Every colonist levels up, develops a specialty, and becomes someone worth protecting.
 
 ---
 
 ## Core Loop
 
-**Daytime:** Robots attack. Turrets fire, workers build and repair. Any worker can be possessed for direct control.
+**Daytime:** Robots attack. Towers fire, colonists build and repair.
 
-**Nighttime:** Robots freeze in place. Workers salvage scraps, expand the colony, and prepare for the next day.
-
-**The pressure:** Everything runs on resources. Turrets need ammo, workers need food, structures need materials. None of it is free.
+**Nighttime:** Robots freeze in place. Colonists salvage scrap, expand the colony, and prepare for the next day.
 
 ---
 
@@ -36,162 +28,153 @@ Robot strength follows the arc of the sun. They're at peak power at Noon and wea
 
 ---
 
-## Workers
+## Colonists
 
-Workers are the heart of the colony. Every worker starts as a nameless Recruit. As they gain experience, they develop a name, a specialty, and an appearance to match. A veteran worker looks and performs differently from a fresh one, and losing them matters.
+Colonists are the heart of the colony. Every colonist starts nameless and dark gray. As they gain experience, they earn a name and their clothing shifts in color to reflect their growing skills.
 
-All workers can do all tasks. Skill level determines speed — not access. Colonists have no weapons and cannot fight — combat belongs entirely to turrets and hunting towers.
+All colonists can do all tasks. Skill level determines speed — not access. Colonists have no weapons and cannot fight — combat belongs entirely to towers.
 
-### Worker Color
+### Colonist Color
 
-A worker's clothing color is a live readout of their skill level. No stat screen needed — a glance tells you everything.
+A colonist's clothing color is a live readout of their skill level. No stat screen needed — a glance tells you everything.
 
 - **Red channel** — Gunnery level
-- **Green channel** — Harvesting level  
+- **Green channel** — Harvesting level
 - **Blue channel** — Engineering level
 
-All workers start dark gray. As levels increase, their color shifts toward the field they're developing. A pure Gunner turns red. A pure Engineer turns blue. A Gunner-Engineer turns magenta. A worker who has maxed all three fields turns white — the visual and mechanical cap.
+All colonists start dark gray. As levels increase, their color shifts toward the field they're developing. A pure Gunner turns red. A pure Engineer turns blue. A Gunner-Engineer turns magenta. A colonist who has maxed all three fields turns white — the visual and mechanical cap.
 
 ### The Three Fields
 
-**Engineering** — Building, repairing, expanding, and salvaging robots.
+**Engineering** — Building, repairing, expanding, dismantling robots.
 - *Construction* — walls, structures, Hub expansion
 - *Mechanics* — repair, robot dismantling, salvage processing
 
-**Gunnery** — Turret and hunting tower operation. Gunners don't carry weapons — they operate stationary structures. Higher skill means faster fire rate.
-- *Marksman* — precision targeting, optimized for combat turrets
-- *Hunter* — operates hunting towers; draws food from the world
+**Gunnery** — Tower operation. Gunners don't carry weapons; they operate towers. Higher skill makes the tower fire faster and hit harder.
+- *Marksman* — combat towers
+- *Hunter* — hunting towers
 
-**Harvesting** — Gathering resources and hauling.
+**Harvesting** — Gathering and hauling.
 - *Miner* — ore, stone
 - *Lumberjack* — wood, trees
-- *Harvester-Farmer* — crops, foraging, gathering
+- *Farmer* — crops, foraging
+- *Hauler* — general transport
 
-Hauling is a general Harvesting capability, not a sub-specialty. All Harvesters haul.
-
-### Specialty Titles
-
-A worker's highest field is their specialty. If two fields are both significantly elevated relative to everything else, the worker earns a dual title — *Gunner-Engineer*, for example. This is rare and meaningful.
-
-A worker receives their name and appearance when they first earn a specialty. Until then they are a nameless Recruit.
-
-### Sub-Field Abilities
-
-Workers will develop smaller abilities and traits within their fields beyond their sub-specialty. This system is planned but not yet designed.
+A low-level Gunner placed on a strong tower will impede the tower's effectiveness. The tower fires slower and does less damage than a high-skill operator would extract from it, but the Gunner gains experience faster. There's a tradeoff between training and effectiveness.
 
 ---
 
 ## Food & The Well-Fed Bonus
 
-The colony workforce is always in one of three states:
+The colony is always in one of three nutrition states:
 
-- **Hungry** — Workers cannot be produced. Population growth halts.
+- **Hungry** — New colonists cannot be created.
 - **Normal** — Standard operation.
-- **Well-Fed** — All workers gain increased speed and XP, regardless of where they are on the map.
+- **Well-Fed** — All colonists gain a speed and XP bonus, regardless of where they are on the map.
 
-The Well-Fed threshold scales with total workforce size. Food comes from farming (Harvester-Farmers), foraging (Harvesters), and hunting (Gunners/Hunters). Different foods carry different food point values. Food stores are shared across all Hubs. Workers don't need to return to a Hub to receive the bonus — it applies colony-wide.
+Food comes from farming, foraging, and hunting. Different foods carry different point values. Food is a single shared pool across the entire colony — colonists don't need to be near a Hub to feel the effect of the bonus.
+
+Food diminishes over time at a rate proportional to colony size.
 
 ---
 
 ## Hubs
 
-Hubs are the anchor points of the colony. Workers spawn from Hubs but are free to roam anywhere on the map. Hubs share a common pool for food. Ammo and materials are stored locally per Hub. The colony expands by building new Hubs further out.
+Hubs are the colony's anchor points. Colonists are produced at Hubs, structures draw from Hub buffers, and the colony expands by building new Hubs further out. Food is colony-wide; ammo and materials are stored per Hub.
+
+Hubs can be destroyed by robots. The game continues as long as either Hubs or colonists remain. The colony is lost only when both are gone.
+
+---
+
+## Building & Construction
+
+Construction begins with the player marking a location. The marked location appears on the Job Board as a build job. Once materials are hauled to the site, Engineers can begin work. The structure is complete when work is finished.
+
+Nothing is constructed in mid-air — a job needs both materials and labor at the site.
 
 ---
 
 ## Robot Salvage
 
-Robots have two separate values: health and scrap. The player only sees the health bar. When turrets or workers damage a robot, both health and scrap go down together. When Engineers dismantle a frozen robot, only health goes down — scrap is preserved. This means careful dismantling at night always yields more than gunning a robot down during the day.
+Robots have two separate values: health and scrap. The player only sees the health bar. When a tower damages a robot, both health and scrap go down together. When an Engineer dismantles a robot, only health goes down — scrap is preserved.
 
-A robot collapses into scrap when its health reaches zero. Scrap is hauled back to a processing building to be broken down into usable materials, including Solite.
+This means careful dismantling at night always yields more than gunning a robot down by day.
 
-Robots can be hauled back while still functional — but a live robot inside the base will attack. That's a risk the player chooses to take.
+An Engineer can dismantle an active robot, but the robot fights back proportional to its current solar strength — at noon, this is highly dangerous; at dusk it's marginal; at night it costs nothing. The XP rate is the same regardless. There's no reward for taking the risk — only the option.
+
+A robot collapses into a Resource Pile when its health reaches zero. Piles are hauled back to processing buildings to be broken down into usable materials.
 
 ### Materials from Robots
 
-**Scrap** — All robots drop scrap when their health reaches zero. Hauled to a processing building where it's broken down into parts, materials, and a variable yield of Solite.
+- **Scrap** — Dropped by all robots. Processed into parts, materials, and a variable yield of Solite.
+- **Shiny Scrap** — Dropped by late-game robots. Processed into Iridium alongside standard outputs.
+- **Solite** — A glowing purple material. Required for advanced production, including conveyor belts.
+- **Iridium** — Drives the highest tier of technology.
 
-**Shiny Scrap** — Dropped by late-game robots. Processed into Iridium alongside standard outputs.
+---
 
-**Solite** — A glowing purple material extracted from scrap at the processing building. Yield varies per batch. Required for advanced production, including conveyor belts.
+## Resource Piles
 
-**Iridium** — Extracted only from shiny scrap at the processing building. Drives the highest tier of technology.
+When a robot dies, its remaining scrap drops as a Resource Pile. When a Hub is destroyed, its full buffer drops as a pile. When colonists harvest in the field, what they gather goes into a pile rather than a personal inventory — colonists don't carry; they harvest, then haul.
+
+A pile is a physical object that a colonist (or a railcar, or a conveyor belt) can pick up and move.
 
 ---
 
 ## Production & Manufacturing
 
-Resources don't go directly into buildings — they're processed first. Production buildings convert raw materials into usable parts: ammo, components, building materials. This means the colony needs a supply chain: gather → haul → process → use.
+Resources don't go directly into buildings — they're processed first. Processing buildings convert raw materials. Production buildings combine processed materials into ammo, components, and building materials. The colony needs a supply chain: gather → haul → process → haul → produce → haul → consume.
 
-Early-game hauling is done on foot. Railroads are laid directly by the player on the map — workers and railcars then path along them automatically. They're cheap, require no Solite, and dramatically cut haul distances. Conveyor belts come later, require Solite to build, and automate the flow entirely.
+Hauling is done by colonists at first. The player can lay railroad track to dramatically reduce haul distances — cheap, no Solite required. Conveyor belts come later: fully automated, Solite-required, end-game.
 
 ---
 
 ## Hunting Towers
 
-Hunting towers are structures that can be placed anywhere on the map — they don't need to be near a Hub. Animals roam the world and are drawn toward or pass near hunting towers. An assigned Gunner/Hunter operates a hunting tower the same way they'd operate a combat turret.
+Hunting Towers are placed by the player anywhere on the map — they don't need to be near a Hub. Animals roam the world and pass near hunting towers. An assigned Hunter operates the tower to bring food to the colony. The kill yields food, which a colonist must haul back to a Hub before it joins the colony food pool.
 
-Hunting towers are the primary early-game food source before farming is established. Robots may occasionally target them, but they are not primary targets. This makes them relatively safe to place in the field.
-
-What hunting towers consume (traps, bait, ammo) is not yet designed.
+Hunting towers are stocked with Stone — their ammunition. Robots may occasionally target hunting towers but they're not primary targets.
 
 ---
 
 ## The Job Board
 
-The Job Board is the colony's task management system. Every available task — mining, construction, hauling, farming, hunting, dismantling — exists as a job on the board with a priority level and a location. Workers automatically claim the highest-priority job they can reach, weighted by proximity.
+The Job Board is the colony's task management system. Every task — mining, construction, hauling, farming, hunting, dismantling — exists as a job on the board with a priority and a location. Colonists automatically claim the highest-priority job they can reach, weighted by proximity.
 
-Players can override this at any time by Force Tasking a worker to a specific job, locking them to it until released. The board is shared across all players — any of the four can assign or reassign any worker.
+Jobs are stored in a priority-ordered list. Most jobs are *normal* priority; players can also flag a job *very_much* — pushing it to the very top. The Recall action uses this flag to ensure colonists drop everything immediately.
 
-When a new job is posted or a job is completed, workers re-evaluate their assignments automatically. A worker mid-task will abandon it for something more urgent unless Force Tasked.
+A more qualified colonist can take a job away from a less qualified one. The qualified colonist doesn't drop what they're doing for trivial reasons — but on important work, the right colonist gets routed in.
+
+Players can post jobs directly: paint an area to harvest, click a single resource, or mark a location for a structure. A colonist working an area continues until either the resources are gone or they die.
+
+There's an **idle colonist** indicator so players can find anyone not currently engaged.
+
+Each colonist has a configurable **range cutoff** for jobs — adjustable from the Job Board. Colonists won't pick up tasks beyond that range.
 
 ---
 
 ## Possession
 
-Any player can possess any worker at any time. In possession mode, the camera shifts to 1st person and the player controls that worker directly — faster, stronger, and more capable than their AI self. Possession gives a direct bonus to all of the worker's abilities.
+Any player can possess any colonist at any time. In possession mode, the camera shifts to 1st person and the player controls the colonist directly — faster, stronger, and more capable than their AI self.
 
-Workers don't possess turrets directly. A Gunner operates a turret — possessing the Gunner gives the player direct control of that turret through them.
+Combat structures (towers) are controlled by possessing the assigned Gunner. The Gunner's skill applies on top of player input.
 
-All of a possessed worker's skills apply passively. A possessed Engineer builds faster. A possessed Gunner shoots better. A possessed Harvester gathers more.
-
-The possessed worker can die. The player returns to the strategic view. The game doesn't end — but losing a veteran worker is a real loss.
-
-Possessed workers are highlighted so other players know not to attempt possession of the same unit.
+A possessed colonist can die. The player returns to the strategic view. The game doesn't end — but losing a veteran is a real loss.
 
 ---
 
 ## Recall
 
-Any player can sound a colony-wide recall from the strategic view. All non-possessed workers immediately drop their current task and path to their nearest Hub.
-
-When the recall is lifted, workers re-evaluate the Job Board as normal. Their interrupted job is still on the board — and since they were likely already closest to it, they usually reclaim it. If another worker took it in the meantime, they move on to the next best thing.
-
-Possessed workers are exempt from recall.
+Any player can sound a colony-wide recall from the strategic view. Every non-possessed colonist drops their current task and paths to their nearest Hub. When the recall is lifted, colonists re-evaluate the Job Board and resume work.
 
 ---
 
 ## The Three Ages
 
-The Three Ages are a way of thinking about progression, not a hard rule. A player in the middle of the "first age" could build a late-game wall if they had the materials. Nothing is locked. The ages describe a philosophy of play — where the game tends to be at a given moment — not a gate.
+The Three Ages are a way of thinking about progression, not a hard rule. Nothing is locked. The ages describe a philosophy of play — where the game tends to be at a given moment — not a gate.
 
-**Age of Manual Labor** — Everything is done by hand. Workers mine, chop, haul, hunt, and build. Getting the first Hub defended and fed is the whole challenge.
+**Age of Manual Labor** — Everything is done by hand. Colonists mine, chop, haul, hunt, and build. Getting the first Hub defended and fed is the whole challenge.
 
-**Age of Automation** — Railcars and eventually conveyor belts take over transport. Production buildings come online. Workers shift into more specialized roles.
+**Age of Automation** — Railcars and eventually conveyor belts take over transport. Production buildings come online. Colonists shift into more specialized roles.
 
-**Age of Industry** — Massive automated fortresses. Iridium flows into advanced production. A few legendary workers oversee systems that would have been unthinkable at the start.
-
----
-
-## Future / Long-Term
-
-See `FUTURE.md` for the full list of ideas outside MVP scope. Key items:
-
-- Sub-Field Abilities & Branching Skill Tree
-- Food Variety System
-- Weather (cloudy days reduce robot strength)
-- Covered structures / robot shade mechanic, and rover power extension as a counter
-- Per-Hub and auto-recall
-- Skill gates on high-tier objects
-- The Awakening — triggering event narrative
-- World Progression beyond the first planet
+**Age of Industry** — Massive automated fortresses. Iridium flows into advanced production. A few legendary colonists oversee systems that would have been unthinkable at the start.

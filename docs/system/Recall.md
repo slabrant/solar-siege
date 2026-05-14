@@ -1,87 +1,50 @@
-# System: Recall (Town Bell)
+# System: Recall
 
-## Purpose
-The Recall action lets any player instantly pull all non-possessed workers back to their nearest Hub from the strategic view. It is a safety valve — used to protect workers as dawn approaches, or to consolidate the workforce during a crisis.
+A colony-wide bell. Any player can sound it from the strategic view. All non-possessed colonists drop their work and path to their nearest Hub.
+
+Recall is implemented entirely through the Job Board — there is no separate routing system. When recalled, every eligible colonist receives a `very_much`-priority RETURN job targeting their nearest Hub.
 
 ---
 
 ## Trigger
 
-Activated by a player action from the strategic (RTS) view. Global — affects all workers on the map simultaneously. There is no per-Hub or per-worker granularity at this time.
-
----
-
-## Behavior
-
-### On Recall
-
 ```gdscript
 # GameState or a RecallManager
-func recall_all():
-    for worker in get_tree().get_nodes_in_group("Workers"):
-        if not worker.is_possessed:
-            worker.recall()
+func recall_all() -> void:
+    for c in get_tree().get_nodes_in_group("Colonists"):
+        if c.is_possessed:
+            continue
+        var hub = _find_nearest_hub_to(c)
+        var job = Job.new()
+        job.type = Job.JobType.RETURN
+        job.location = hub.global_position
+        job.assigned_colonist = c
+        JobBoard.add_job(job, true)   # very_much = true
+    recall_triggered.emit()
+
+func release_recall() -> void:
+    for job in JobBoard.jobs.filter(func(j): return j.type == Job.JobType.RETURN):
+        JobBoard.remove_job(job.id)
+    recall_released.emit()
 ```
 
-```gdscript
-# Worker
-func recall():
-    is_recalled = true
-    if current_job:
-        current_job.assigned_worker = null
-        current_job = null
-    var nearest_hub = _find_nearest_hub()
-    navigation_agent.target_position = nearest_hub.global_position
-```
+Because the RETURN jobs are inserted at the top of the queue with `very_much`, every recalled colonist sees them as the highest-priority work available and pathing happens automatically through standard Job Board re-evaluation. Possessed colonists never get a RETURN job posted and are unaffected. Force-tasked colonists also ignore the recall — they ignore `jobs_updated` entirely until released.
 
-- Possession is not interrupted — possessed workers are exempt
-- Current job is released immediately (unassigned on the Job Board)
-- Worker paths to nearest Hub and waits
-
-### On Release
-
-```gdscript
-func release_recall():
-    is_recalled = false
-    _find_new_job()   # standard Job Board evaluation
-```
-
-No saved job state. Workers re-evaluate the Job Board normally on release. Their previously interrupted job will still be on the board at the same priority — and since they were likely closest to it, they will usually reclaim it. If another worker took it in the interim, they are routed to the next best job.
-
----
-
-## Data
-
-```gdscript
-# Worker
-var is_recalled: bool = false
-```
-
----
-
-## Nearest Hub Resolution
-
-```gdscript
-func _find_nearest_hub() -> Node3D:
-    var hubs = get_tree().get_nodes_in_group("Hubs")
-    var nearest = null
-    var nearest_dist = INF
-    for hub in hubs:
-        var d = global_position.distance_to(hub.global_position)
-        if d < nearest_dist:
-            nearest_dist = d
-            nearest = hub
-    return nearest
-```
-
-Workers are not tied to a specific Hub — nearest at the time of recall determines the destination.
+On release, the RETURN jobs are removed from the queue and colonists re-evaluate the Job Board as normal. Their previously interrupted job is back at its prior position.
 
 ---
 
 ## Signals
 
 ```gdscript
-# GameState / RecallManager
 signal recall_triggered()
 signal recall_released()
 ```
+
+---
+
+## Dependencies
+
+- `JobBoard` — posts and removes RETURN jobs
+- `PossessionManager` (autoload) — for possession check
+- `"Colonists"` and `"Hubs"` groups

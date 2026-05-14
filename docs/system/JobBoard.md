@@ -1,7 +1,6 @@
 # System: Job Board
 
-## Purpose
-The Job Board is a global singleton that maintains all available tasks in the colony. Workers query it to find their next assignment. Players interact with it to issue Force Task overrides. It is the central coordination layer between player intent and worker behavior.
+The Job Board is a global singleton holding every available task in the colony. Colonists query it for their next assignment. Players post jobs, force-task colonists, and configure routing here.
 
 ---
 
@@ -9,7 +8,8 @@ The Job Board is a global singleton that maintains all available tasks in the co
 
 ```gdscript
 # JobBoard (autoload)
-var available_jobs: Array[Job] = []
+
+var jobs: Array[Job] = []   # ordered list, highest priority first
 ```
 
 ### Job Resource
@@ -17,107 +17,127 @@ var available_jobs: Array[Job] = []
 ```gdscript
 class_name Job extends Resource
 
-enum Priority  { LOW, MEDIUM, HIGH, CRITICAL }
-enum JobType   { CONSTRUCTION, REPAIR, MINING, HAULING, FARMING, HUNTING, COMBAT, DISMANTLING }
+enum JobType { CONSTRUCTION, REPAIR, MINING, HAULING, FARMING, HUNTING, DISMANTLING, OPERATE_TOWER, RETURN }
 
 var id: String
 var type: JobType
-var priority: Priority
 var location: Vector3
 var required_field: String = ""    # "Engineering", "Gunnery", "Harvesting", or "" for any
-var assigned_worker: Node3D = null
-var metadata: Dictionary = {}      # job-specific data (e.g. target node, resource type)
+var assigned_colonist: Node3D = null
+var metadata: Dictionary = {}
 ```
 
 ---
 
-## API
+## Priority
+
+Priority is the colonist's position in the ordered `jobs` list, not an enum. When a job is posted, it inserts into the list at the appropriate position.
+
+Most jobs are added at a default position. A job flagged `very_much` is inserted at the very top, ahead of all other work — used by Recall and other urgent player actions to ensure colonists drop everything.
 
 ```gdscript
-func add_job(type: Job.JobType, priority: Job.Priority, location: Vector3, required_field: String = "") -> String:
-    # Creates job, appends to available_jobs, emits jobs_updated
-    # Returns job ID
+func add_job(job: Job, very_much: bool = false) -> String:
+    if very_much:
+        jobs.push_front(job)
+    else:
+        jobs.append(job)
+    jobs_updated.emit()
+    return job.id
 
-func remove_job(id: String):
-    # Removes job by ID, emits jobs_updated
-
-func get_best_job_for(worker: Node3D) -> Job:
-    # Returns highest-priority available job the worker can take
-    # Sort: priority DESC, then distance ASC
-    # Respects required_field (see Qualification below)
-
-func get_job_by_id(id: String) -> Job:
-    # Returns job or null
+func remove_job(id: String) -> void:
+    jobs = jobs.filter(func(j): return j.id != id)
+    jobs_updated.emit()
 ```
 
 ---
 
-## Assignment Logic
+## Assignment
+
+A colonist queries for the best job they can reach within their `range_cutoff`:
 
 ```gdscript
-func get_best_job_for(worker: Node3D) -> Job:
-    var candidates = available_jobs.filter(func(j):
-        return j.assigned_worker == null or j.assigned_worker == worker
-    )
-
-    candidates.sort_custom(func(a, b):
-        if a.priority != b.priority:
-            return a.priority > b.priority
-        return worker.global_position.distance_to(a.location) < worker.global_position.distance_to(b.location)
-    )
-
-    for job in candidates:
-        if _worker_qualifies(worker, job):
+func get_best_job_for(colonist: Node3D) -> Job:
+    for job in jobs:
+        if job.location.distance_to(colonist.global_position) > colonist.range_cutoff:
+            continue
+        if job.assigned_colonist == null or job.assigned_colonist == colonist:
             return job
-
+        if _can_preempt(colonist, job):
+            return job
     return null
 ```
 
-### Qualification
+Jobs are evaluated in priority order. The first reachable, takeable job wins. No sorting is needed at query time — the list is already ordered.
 
-`required_field` gates job eligibility by skill level, not XP. A worker must have a minimum level in the required field to be considered qualified. The threshold is in OPEN_QUESTIONS.md (`MIN_FIELD_LEVEL`).
+---
 
-- If `required_field == ""` — any worker qualifies
-- If `required_field` is set — worker's `levels[required_field]` must meet the threshold
+## Qualification & Preemption
+
+A more qualified colonist can take a job away from a less qualified one — but only on jobs that have a `required_field`, and only when the skill gap is significant.
 
 ```gdscript
-func _worker_qualifies(worker: Node3D, job: Job) -> bool:
-    if job.required_field == "":
+func _can_preempt(colonist: Node3D, job: Job) -> bool:
+    if job.assigned_colonist == null:
         return true
-    return worker.levels[job.required_field] >= MIN_FIELD_LEVEL  # see Balance.md
+    if job.required_field == "":
+        return false                         # no field gate — first-come-first-served
+    var their_level = job.assigned_colonist.levels[job.required_field]
+    var my_level    = colonist.levels[job.required_field]
+    return my_level - their_level >= QUAL_PREEMPT_LEVEL_GAP  # see Balance.md
 ```
 
-This is a soft routing preference — skilled workers go to relevant jobs first. Unqualified workers can still be Force Tasked onto any job.
+The preempted colonist re-evaluates the Job Board on the next `jobs_updated` cycle and picks something else. They don't drop their current action mid-swing — they finish the tick and move on.
+
+---
+
+## Re-Assignment
+
+When `jobs_updated` fires, colonists not force-tasked call `get_best_job_for(self)`. If a better job exists, they release the current one and take the new one.
+
+Force-tasked colonists ignore `jobs_updated` until released.
+
+---
+
+## Range Cutoff
+
+Each colonist has a `range_cutoff` field that limits how far they'll travel for a job. Default is in Balance.md. Adjustable from the Job Board UI per colonist — a player might give a homebody colonist a small radius and a scout a large one.
+
+---
+
+## Player-Initiated Jobs
+
+Players can post jobs directly:
+
+- **Area paint** — Select an area of the map; every resource of the chosen type within the area becomes a job
+- **Single target** — Click one resource or structure to add it to the board
+- **Build location** — Mark a spot for a structure. Materials are auto-requested via HAULING jobs; once delivered, the CONSTRUCTION job becomes takeable
+- **Force task** — Lock a specific colonist to a specific job
+- **Very_much** — Flag a job to jump to the top of the queue
+
+A colonist working an area continues until either the resources are exhausted or they die.
+
+---
+
+## Idle Indicator
+
+The Job Board exposes which colonists currently have no job. The UI presents a **Find Idle Colonist** action to focus the camera on one.
+
+```gdscript
+func get_idle_colonists() -> Array:
+    return get_tree().get_nodes_in_group("Colonists").filter(func(c): return c.current_job == null)
+```
 
 ---
 
 ## Signals
 
 ```gdscript
-signal jobs_updated    # emitted on any add or remove; workers re-evaluate on receipt
+signal jobs_updated
 ```
-
----
-
-## Re-Assignment Behavior
-
-Workers listen to `jobs_updated`. On receipt, if not force-tasked, they call `get_best_job_for(self)`. If a better job exists than their current one, they release the current job (set `assigned_worker = null`) and take the new one.
-
-Force-tasked workers ignore `jobs_updated` entirely until `release_task()` is called.
-
----
-
-## Player Interaction
-
-All players (up to 4) can:
-- View the job board state
-- Issue a Force Task to any worker (calls `worker.force_task(job)`)
-- Release a Force Task (calls `worker.release_task()`)
-- Manually post jobs (e.g. "build wall here") which enter the board at the specified priority
 
 ---
 
 ## Dependencies
 
-- `Worker` nodes — query and hold job references
-- Scene systems — post jobs when tasks arise (e.g. a Hub buffer running low posts a HAULING job)
+- `Colonist` nodes — query jobs, hold assignments
+- Scene systems — post jobs when conditions arise (low buffer → HAULING, fresh ResourcePile → HAULING, etc.)

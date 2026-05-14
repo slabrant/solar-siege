@@ -1,75 +1,49 @@
 # System: Transport
 
-## Purpose
-Transport moves raw and processed materials around the map so workers don't have to carry everything by hand. Three tiers exist: on-foot hauling (always available), railcars (mid-game, player-placed track), and conveyor belts (late-game, Solite-gated, automated).
+Three tiers of moving resources around the map: hauling (always), railcars (mid-game), conveyor belts (late-game).
 
 ---
 
-## Tier 1: On-Foot Hauling
+## Hauling
 
-No infrastructure required. Workers pick up a resource, carry it to a destination, and return. Slowest method but available from the start.
+The default. Colonists pick up ResourcePiles and carry them to destinations as `HAULING` jobs from the Job Board. Capacity scales with Harvesting level — see SYSTEMS/Colonist.md.
 
-Governed entirely by the Worker and Job Board systems. No separate transport nodes needed.
+No infrastructure required. Slow at distance.
 
 ---
 
-## Tier 2: Railcar
+## Railcars
 
-### Overview
-
-The player lays railroad track directly on the map. Railcars spawn at a station and follow the laid track automatically, picking up and dropping off cargo at designated stops.
-
-Railcars are cheap to build and require no Solite. They are the primary logistics backbone of the Age of Automation.
-
-### Track Placement
-
-Track is placed by the player in the top-down view, similar to drawing a path. Workers are not required for placement. Track segments snap to a grid — resolution in OPEN_QUESTIONS.md. Track can branch.
-
-Implementation: likely a `Path3D` node generated from player input, with railcar nodes following it via `PathFollow3D`.
-
-### Railcar Data
+Player-laid track. Railcars path along it automatically, stopping at designated pickup and dropoff points. Cheap; no Solite required.
 
 ```gdscript
 class_name Railcar extends Node3D
 
 var path: Path3D
 var follow: PathFollow3D
-var cargo: Dictionary = {}        # resource type → amount
+var cargo: Dictionary = {}
 var cargo_capacity: float = 200.0
-var speed: float = 5.0            # units/sec along path
-var current_stop: int = 0
-var stops: Array[Vector3] = []    # designated pickup/dropoff points
+var speed: float = 5.0
+var stops: Array[Vector3] = []
 ```
+
+### Track
+
+Track is placed by the player in the strategic view. Tracks can branch — at a junction, a railcar selects based on cargo destination. Routing logic and branch handling details are in OPEN_QUESTIONS.md.
+
+Conveyor belts cannot branch — they are one-way per segment. This is the primary structural difference between the two systems.
 
 ### Stop Behavior
 
-At each stop, railcars:
-1. Check if there is cargo to pick up (from a processing building output queue or scrap pile)
-2. Load up to capacity
-3. Check if there is a destination hub or building that needs the cargo
-4. Move to next stop
-
-Stop logic is simple — no dynamic routing. The player defines the route by laying track.
-
-### Cost
-
-- Track: cheap (wood/metal per segment)
-- Railcar: moderate (metal components)
-- No Solite required
+At a stop, a railcar can withdraw or deposit cargo using the same `Structure.withdraw` contract used by colonists.
 
 ---
 
-## Tier 3: Conveyor Belt
+## Conveyor Belts
 
-### Overview
+Fully automated, continuous item movers. One-way per segment. Items placed on the input end arrive on the output end. No colonist involvement.
 
-Conveyor belts are fully automated, continuous item movers. They replace manual hauling entirely on their route. Items placed at the belt's input end arrive at the output end without worker involvement.
-
-Belts require Solite to build and are the defining feature of the Age of Industry.
-
-### Implementation
-
-Uses `MultiMeshInstance3D` for rendering items on the belt path — one draw call regardless of item count.
+Belts require Solite to build. They use `MultiMeshInstance3D` for efficient rendering of items along the path.
 
 ```gdscript
 class_name ConveyorBelt extends Node3D
@@ -78,19 +52,26 @@ class_name ConveyorBelt extends Node3D
 @export var item_mesh: Mesh
 var path: Path3D
 var multimesh: MultiMeshInstance3D
-var items: Array[Dictionary] = []    # { progress: float, type: String }
+var items: Array[Dictionary] = []   # { progress: float, type: String }
 ```
 
-Items progress from 0.0 to 1.0 along the belt's path each frame. On reaching 1.0, the item exits and is delivered to the connected buffer or next belt.
+### Chaining
 
-### Belt Chaining
+Belts connect end-to-end. On reaching the end of one belt, an item transfers to the connected belt or structure. If the output is blocked, items back up on the belt.
 
-Belts connect to each other and to building input/output ports. Exit logic: on item reaching progress 1.0, check for a connected belt or buffer at the output end and transfer. If output is blocked (buffer full, no connection), item halts at end until cleared.
+Belts cannot branch — splitter buildings would be required for that, and they're in OPEN_QUESTIONS.md.
 
-### Cost
+---
 
-- Belt segment: moderate (metal + Solite per segment)
-- Higher throughput than railcars but higher build cost
+## Comparison
+
+| Feature        | Hauling    | Railcar    | Conveyor      |
+|----------------|------------|------------|---------------|
+| Infrastructure | None       | Track      | Belt + Solite |
+| Branching      | N/A        | Yes        | No            |
+| Throughput     | Low        | Medium     | High          |
+| Automation     | Colonist   | Autonomous | Fully auto    |
+| XP             | Harvesting | None       | None          |
 
 ---
 
@@ -102,14 +83,5 @@ signal cargo_loaded(type: String, amount: float)
 signal cargo_delivered(type: String, amount: float, destination: Node3D)
 
 # ConveyorBelt
-signal item_exited(type: String, progress_destination: Node3D)
+signal item_exited(type: String, destination: Node3D)
 ```
-
----
-
-## Dependencies
-
-- `Worker` — on-foot hauling
-- `JobBoard` — HAULING jobs for on-foot transport
-- `ResourcePipeline` — source and destination of all cargo
-- `Hub` — `ResourceBuffer` as delivery target

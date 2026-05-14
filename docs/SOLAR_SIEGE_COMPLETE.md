@@ -4,27 +4,27 @@ Complete design and technical documentation. Organized for review and print.
 
 ## Contents
 
-1. **Game Design Document (GDD)** — Vision, gameplay, design intent
+1. **Game Design Document (GDD)**
 2. **System Specifications (SYSTEMS)**
-    1. SYSTEMS overview (architecture, autoloads, signal flow)
-    2. Balance
-    3. Colonist
-    4. Job Board
-    5. Solar Cycle
-    6. Robot
-    7. Structure (base class)
-    8. Hub
-    9. Tower
-    10. Hunting Tower
-    11. Animals
-    12. Food
-    13. Possession
-    14. Recall
-    15. Resource Pile
-    16. Transport
-    17. Processing Building
-    18. Production Building
-    19. Multiplayer
+   1. SYSTEMS overview
+   2. Balance
+   3. Colonist
+   4. Job Board
+   5. Solar Cycle
+   6. Robot
+   7. Structure (base class)
+   8. Hub
+   9. Tower
+   10. Hunting Tower
+   11. Animals
+   12. Food
+   13. Possession
+   14. Recall
+   15. Resource Pile
+   16. Transport
+   17. Processing Building
+   18. Production Building
+   19. Multiplayer
 3. **Future / Long-Term Ideas (FUTURE)**
 4. **Open Questions (OPEN_QUESTIONS)**
 
@@ -85,7 +85,7 @@ All colonists start dark gray. As levels increase, their color shifts toward the
 - *Construction* — walls, structures, Hub expansion
 - *Mechanics* — repair, robot dismantling, salvage processing
 
-**Gunnery** — Tower operation. Gunners don't carry weapons; they operate towers. Higher skill means faster fire rate.
+**Gunnery** — Tower operation. Gunners don't carry weapons; they operate towers. Higher skill makes the tower fire faster and hit harder.
 - *Marksman* — combat towers
 - *Hunter* — hunting towers
 
@@ -160,7 +160,7 @@ A pile is a physical object that a colonist (or a railcar, or a conveyor belt) c
 
 Resources don't go directly into buildings — they're processed first. Processing buildings convert raw materials. Production buildings combine processed materials into ammo, components, and building materials. The colony needs a supply chain: gather → haul → process → haul → produce → haul → consume.
 
-Hauling is done on foot at first. The player can lay railroad track to dramatically reduce haul distances — cheap, no Solite required. Conveyor belts come later: fully automated, Solite-required, end-game.
+Hauling is done by colonists at first. The player can lay railroad track to dramatically reduce haul distances — cheap, no Solite required. Conveyor belts come later: fully automated, Solite-required, end-game.
 
 ---
 
@@ -303,6 +303,23 @@ PossessionManager.possession_changed
 
 ---
 
+## Game Over
+
+The colony is lost when there are no Hubs and no Colonists. Either alone is enough to continue.
+
+```gdscript
+# GameState (autoload)
+func _check_game_over() -> void:
+    var colonists = get_tree().get_nodes_in_group("Colonists").size()
+    var hubs      = get_tree().get_nodes_in_group("Hubs").size()
+    if colonists == 0 and hubs == 0:
+        game_over.emit()
+```
+
+`_check_game_over()` is connected to `Colonist.colonist_died` and `Structure.structure_destroyed` (Hub variant).
+
+---
+
 ## Conventions
 
 - All tunable constants live in `Balance.gd` (see Balance.md). System docs reference by name with `# see Balance.md`.
@@ -319,6 +336,10 @@ PossessionManager.possession_changed
 All tunable constants for the game. Single source of truth. Referenced by name from system docs.
 
 A `Balance.gd` autoload could be derived directly from this file.
+
+**What belongs here:** values that apply game-wide and have no per-instance variation — there is one kind of Colonist, one Solar Cycle, one possession bonus, one Well-Fed XP multiplier. Anything where the design says "this number is the same everywhere" lives here.
+
+**What stays as `@export`:** values that vary per-instance — different robot types have different health and damage; different animals have different food yields; different recipes have different inputs and outputs; different tower tiers have different fire rates. These are configured on each scene/resource, not centrally.
 
 ---
 
@@ -350,6 +371,24 @@ const BASE_WELL_FED: float            = 50.0    # points per colonist for Well-F
 const BASE_HUNGRY: float              = 10.0    # points per colonist for Hungry threshold
 const FOOD_CONSUMPTION_RATE: float    = 0.1     # food consumed per colonist per second
 
+# --- Colonist ---
+const COLONIST_BASE_SPEED: float      = 5.0
+const COLONIST_MAX_HEALTH: float      = 100.0
+
+# --- Solar Cycle ---
+const DAY_DURATION: float             = 600.0   # real seconds per full 24-hour cycle
+const START_TIME: float               = 6.0     # game starts at 6 AM
+
+# --- Robot Waves ---
+const HEAVY_ROBOT_UNLOCK_DAY: int     = 10     # in-game day when heavy robots can start appearing
+const WAVE_BASE_INTERVAL: float       = 300.0  # seconds between waves at game start
+const WAVE_ESCALATION_RATE: float     = 0.95   # multiplier applied to interval each wave (shorter over time)
+
+# --- Animals ---
+const ANIMAL_SPAWN_INTERVAL: float    = 60.0   # seconds between animal spawns
+const ANIMAL_MAX_COUNT: int           = 20     # max animals on map at once
+const ANIMAL_ATTRACTION_STRENGTH: float = 0.5  # 0=fully random wander, 1=beeline to tower
+
 # --- Hub Spawning ---
 const COLONIST_FOOD_COST: float       = 25.0    # food cost to queue a new colonist
 const SPAWN_DURATION: float           = 30.0    # seconds to produce one colonist
@@ -367,6 +406,8 @@ Health doubles as XP yield — a 200hp tree gives 200 Harvesting XP.
 
 ### Natural Resources
 
+XP is awarded as Harvesting for all natural resources.
+
 | Object              | Health |
 |---------------------|--------|
 | Small tree          | 100    |
@@ -380,7 +421,7 @@ Health doubles as XP yield — a 200hp tree gives 200 Harvesting XP.
 
 ### Animals
 
-See SYSTEMS/Animals.md for behavior. XP is awarded as Gunnery.
+XP is awarded as Gunnery (the tower operator gets credit). See SYSTEMS/Animals.md for behavior.
 
 | Animal | Health | Food Yield |
 |--------|--------|------------|
@@ -394,6 +435,12 @@ See SYSTEMS/Animals.md for behavior. XP is awarded as Gunnery.
 |-------------|--------|------------|-----------------------------|
 | Basic robot | 200    | 200        | Early game                  |
 | Heavy robot | 600    | 600        | Late game; drops ShinyScrap |
+
+### Colonist
+
+| Object   | Health |
+|----------|--------|
+| Colonist | 100    |
 
 ### Structures
 
@@ -418,14 +465,14 @@ Building and repairing awards Engineering XP equal to health restored.
 
 Full day cycle: 600 real seconds. Day and night are each 300 seconds.
 
-| Action                         | Time Per Action | XP Per Day (est.)     |
-|--------------------------------|-----------------|-----------------------|
-| Chop small trees               | ~15s            | ~4,000 Harvesting     |
-| Mine ore (small)               | ~20s            | ~4,500 Harvesting     |
-| Harvest basic crops            | ~3s             | ~4,000 Harvesting     |
-| Build wall segments            | ~10s            | ~12,000 Engineering   |
-| Dismantle basic robots (night) | ~30s            | ~4,000 Engineering    |
-| Haul 50m loads                 | ~10s travel     | ~1,500 Harvesting     |
+| Action                         | Time Per Action | XP Per Day (est.)   |
+|--------------------------------|-----------------|---------------------|
+| Chop small trees               | ~15s            | ~4,000 Harvesting   |
+| Mine ore (small)               | ~20s            | ~4,500 Harvesting   |
+| Harvest basic crops            | ~3s             | ~4,000 Harvesting   |
+| Build wall segments            | ~10s            | ~12,000 Engineering |
+| Dismantle basic robots (night) | ~30s            | ~4,000 Engineering  |
+| Haul 50m loads                 | ~10s travel     | ~1,500 Harvesting   |
 
 At ~4,000 XP/day: level 10 in ~2 days, level 50 in ~30 days, level 128 in ~200 days.
 
@@ -444,13 +491,14 @@ Colonists are the primary agents of the colony. They execute tasks autonomously 
 ```gdscript
 class_name Colonist extends CharacterBody3D
 
-@export var base_speed: float = 5.0
-
 @onready var navigation_agent: NavigationAgent3D = $NavigationAgent3D
 
 # Identity
 var colonist_name: String = ""
 var is_new: bool = true                        # true until first specialty earned
+
+# Health
+var health: float = COLONIST_MAX_HEALTH        # see Balance.md
 
 # XP and levels per field
 var xp: Dictionary = {
@@ -469,7 +517,6 @@ var specialty: String = ""                     # "" until earned; e.g. "Gunner",
 # Task state
 var current_job: Job = null
 var is_force_tasked: bool = false
-var is_recalled: bool = false
 var range_cutoff: float = RANGE_CUTOFF_DEFAULT # see Balance.md; configurable per colonist
 
 # Possession state
@@ -573,11 +620,11 @@ func _on_specialty_changed() -> void:
 
 Cosmetic only — drives no logic. Used for flavor display.
 
-| Field        | Sub-Specialties                              |
-|--------------|----------------------------------------------|
-| Engineering  | Construction, Mechanics                      |
-| Gunnery      | Marksman, Hunter                             |
-| Harvesting   | Miner, Lumberjack, Farmer, Hauler            |
+| Field       | Sub-Specialties                   |
+|-------------|-----------------------------------|
+| Engineering | Construction, Mechanics           |
+| Gunnery     | Marksman, Hunter                  |
+| Harvesting  | Miner, Lumberjack, Farmer, Hauler |
 
 ---
 
@@ -587,9 +634,9 @@ Level scales task speed. All colonists perform all tasks — skill determines ho
 
 ```gdscript
 func get_task_speed(field: String) -> float:
-    var speed = base_speed * (1.0 + levels[field] * SPEED_SCALE)  # see Balance.md
+    var speed = COLONIST_BASE_SPEED * (1.0 + levels[field] * SPEED_SCALE)  # see Balance.md
     if is_possessed:
-        speed *= POSSESSION_BONUS                                  # see Balance.md
+        speed *= POSSESSION_BONUS                                           # see Balance.md
     return speed
 ```
 
@@ -606,9 +653,28 @@ A maxed-out Harvester carries significantly more per trip than a fresh colonist.
 
 ---
 
-## Combat
+## Damage & Death
 
-Colonists have no weapons. They cannot attack robots or animals. Combat is handled exclusively by towers.
+Colonists have no weapons and cannot attack. Combat is handled exclusively by towers.
+
+Colonists can take damage from robot thorns (see SYSTEMS/Robot.md) and from any damage source that calls `take_damage`.
+
+```gdscript
+func take_damage(amount: float) -> void:
+    health -= amount
+    if health <= 0:
+        _die()
+
+func _die() -> void:
+    if is_possessed:
+        PossessionManager.unpossess(possessing_player)
+    if current_job:
+        current_job.assigned_colonist = null
+    colonist_died.emit(self)
+    queue_free()
+```
+
+On death, the colonist's possession is released (if any), their current job is unassigned, and `colonist_died` is emitted. `GameState._check_game_over()` is wired to this signal — see SYSTEMS.md.
 
 ---
 
@@ -620,7 +686,7 @@ func _ready() -> void:
     _find_new_job()
 
 func _on_jobs_updated() -> void:
-    if not is_force_tasked and not is_recalled:
+    if not is_force_tasked:
         _find_new_job()
 ```
 
@@ -666,7 +732,7 @@ var jobs: Array[Job] = []   # ordered list, highest priority first
 ```gdscript
 class_name Job extends Resource
 
-enum JobType { CONSTRUCTION, REPAIR, MINING, HAULING, FARMING, HUNTING, DISMANTLING, OPERATE_TOWER }
+enum JobType { CONSTRUCTION, REPAIR, MINING, HAULING, FARMING, HUNTING, DISMANTLING, OPERATE_TOWER, RETURN }
 
 var id: String
 var type: JobType
@@ -709,7 +775,7 @@ func get_best_job_for(colonist: Node3D) -> Job:
     for job in jobs:
         if job.location.distance_to(colonist.global_position) > colonist.range_cutoff:
             continue
-        if job.assigned_colonist == null:
+        if job.assigned_colonist == null or job.assigned_colonist == colonist:
             return job
         if _can_preempt(colonist, job):
             return job
@@ -741,7 +807,7 @@ The preempted colonist re-evaluates the Job Board on the next `jobs_updated` cyc
 
 ## Re-Assignment
 
-When `jobs_updated` fires, colonists not force-tasked or recalled call `get_best_job_for(self)`. If a better job exists, they release the current one and take the new one.
+When `jobs_updated` fires, colonists not force-tasked call `get_best_job_for(self)`. If a better job exists, they release the current one and take the new one.
 
 Force-tasked colonists ignore `jobs_updated` until released.
 
@@ -806,10 +872,7 @@ The Solar Cycle is the heartbeat of the game. Time advances, the phase changes, 
 
 enum DayPhase { DAY, NIGHT }
 
-@export var day_duration: float = 600.0   # real seconds per full 24-hour cycle
-@export var start_time: float = 6.0
-
-var current_time: float = 6.0             # 0.0 to 24.0
+var current_time: float = START_TIME      # see Balance.md
 var current_phase: DayPhase = DayPhase.DAY
 ```
 
@@ -819,7 +882,7 @@ var current_phase: DayPhase = DayPhase.DAY
 
 ```gdscript
 func _process(delta: float) -> void:
-    current_time += (delta / day_duration) * 24.0
+    current_time += (delta / DAY_DURATION) * 24.0  # see Balance.md
     if current_time >= 24.0:
         current_time -= 24.0
 
@@ -1012,7 +1075,7 @@ All built objects in the colony — Hubs, Towers, Hunting Towers, Processing Bui
 
 A structure goes through three phases:
 
-1. **Marked** — Player marks a location. A `BUILD` job appears on the Job Board.
+1. **Marked** — Player marks a location. A `CONSTRUCTION` job appears on the Job Board.
 2. **Materials Pending** — `HAULING` jobs are auto-posted for each required input. The structure cannot be worked on yet.
 3. **Under Construction** — Once all materials are at the site, Engineers can begin. Progress accrues in health points. When `health == max_health`, the structure is complete and operational.
 
@@ -1083,14 +1146,14 @@ These signals are inherited by all specific structure types and need not be re-d
 
 Each subtype only documents what's unique to it. None of them re-document damage, destruction, or repair.
 
-| Subtype             | Doc                              |
-|---------------------|----------------------------------|
-| Hub                 | SYSTEMS/Hub.md                   |
-| Tower               | SYSTEMS/Tower.md                 |
-| Hunting Tower       | SYSTEMS/HuntingTower.md          |
-| Processing Building | SYSTEMS/ProcessingBuilding.md    |
-| Production Building | SYSTEMS/ProductionBuilding.md    |
-| Wall                | (see Balance.md health tiers)    |
+| Subtype             | Doc                           |
+|---------------------|-------------------------------|
+| Hub                 | SYSTEMS/Hub.md                |
+| Tower               | SYSTEMS/Tower.md              |
+| Hunting Tower       | SYSTEMS/HuntingTower.md       |
+| Processing Building | SYSTEMS/ProcessingBuilding.md |
+| Production Building | SYSTEMS/ProductionBuilding.md |
+| Wall                | (see Balance.md health tiers) |
 
 ---
 
@@ -1196,20 +1259,7 @@ func _drop_remaining_resources() -> void:
     pile.global_position = global_position
 ```
 
----
-
-## Game Over
-
-The colony is lost when there are no Hubs and no Colonists. Either alone is enough to continue.
-
-```gdscript
-# GameState
-func _check_game_over() -> void:
-    var colonists = get_tree().get_nodes_in_group("Colonists").size()
-    var hubs      = get_tree().get_nodes_in_group("Hubs").size()
-    if colonists == 0 and hubs == 0:
-        game_over.emit()
-```
+Hub destruction contributes to the colony-wide game-over condition — see SYSTEMS.md.
 
 ---
 
@@ -1665,6 +1715,8 @@ signal possession_changed(player_id: int, unit: Node3D, is_possessed: bool)
 
 A colony-wide bell. Any player can sound it from the strategic view. All non-possessed colonists drop their work and path to their nearest Hub.
 
+Recall is implemented entirely through the Job Board — there is no separate routing system. When recalled, every eligible colonist receives a `very_much`-priority RETURN job targeting their nearest Hub.
+
 ---
 
 ## Trigger
@@ -1673,39 +1725,25 @@ A colony-wide bell. Any player can sound it from the strategic view. All non-pos
 # GameState or a RecallManager
 func recall_all() -> void:
     for c in get_tree().get_nodes_in_group("Colonists"):
-        if not c.is_possessed:
-            c.recall()
+        if c.is_possessed:
+            continue
+        var hub = _find_nearest_hub_to(c)
+        var job = Job.new()
+        job.type = Job.JobType.RETURN
+        job.location = hub.global_position
+        job.assigned_colonist = c
+        JobBoard.add_job(job, true)   # very_much = true
+    recall_triggered.emit()
 
 func release_recall() -> void:
-    for c in get_tree().get_nodes_in_group("Colonists"):
-        c.release_recall()
+    for job in JobBoard.jobs.filter(func(j): return j.type == Job.JobType.RETURN):
+        JobBoard.remove_job(job.id)
+    recall_released.emit()
 ```
 
-The recall is implemented by posting `very_much` priority "go to nearest Hub" jobs on the Job Board (see SYSTEMS/JobBoard.md). This guarantees those jobs override anything else in the queue.
+Because the RETURN jobs are inserted at the top of the queue with `very_much`, every recalled colonist sees them as the highest-priority work available and pathing happens automatically through standard Job Board re-evaluation. Possessed colonists never get a RETURN job posted and are unaffected. Force-tasked colonists also ignore the recall — they ignore `jobs_updated` entirely until released.
 
-Possessed colonists are exempt.
-
----
-
-## Colonist Side
-
-```gdscript
-# Colonist
-func recall() -> void:
-    is_recalled = true
-    if current_job:
-        current_job.assigned_colonist = null
-        current_job = null
-    navigation_agent.target_position = _find_nearest_hub().global_position
-
-func release_recall() -> void:
-    is_recalled = false
-    _find_new_job()
-```
-
-Colonists are not tied to a specific Hub — nearest at the time of recall determines the destination.
-
-On release, colonists re-evaluate the Job Board. Their interrupted job is back on the board at its prior position.
+On release, the RETURN jobs are removed from the queue and colonists re-evaluate the Job Board as normal. Their previously interrupted job is back at its prior position.
 
 ---
 
@@ -1715,6 +1753,14 @@ On release, colonists re-evaluate the Job Board. Their interrupted job is back o
 signal recall_triggered()
 signal recall_released()
 ```
+
+---
+
+## Dependencies
+
+- `JobBoard` — posts and removes RETURN jobs
+- `PossessionManager` (autoload) — for possession check
+- `"Colonists"` and `"Hubs"` groups
 
 ---
 
@@ -1824,7 +1870,7 @@ At a stop, a railcar can withdraw or deposit cargo using the same `Structure.wit
 
 ## Conveyor Belts
 
-Fully automated, continuous item movers. One-way per segment. Items placed on the input end arrive on the output end. No worker involvement.
+Fully automated, continuous item movers. One-way per segment. Items placed on the input end arrive on the output end. No colonist involvement.
 
 Belts require Solite to build. They use `MultiMeshInstance3D` for efficient rendering of items along the path.
 
@@ -1851,7 +1897,7 @@ Belts cannot branch — splitter buildings would be required for that, and they'
 | Feature        | Hauling    | Railcar    | Conveyor      |
 |----------------|------------|------------|---------------|
 | Infrastructure | None       | Track      | Belt + Solite |
-| Branching      | n/a        | Yes        | No            |
+| Branching      | N/A        | Yes        | No            |
 | Throughput     | Low        | Medium     | High          |
 | Automation     | Colonist   | Autonomous | Fully auto    |
 | XP             | Harvesting | None       | None          |
@@ -2132,27 +2178,14 @@ Out of scope for MVP. Organized by system.
 ## Colonist
 
 - **Sub-Field Abilities** — Minor traits and abilities within a field that don't constitute a full specialty.
-- **Branching Skill Tree** — Sub-specialties deepen as colonists level up. Structure and unlock conditions TBD.
-- **Skill Gates** — High-tier objects require a minimum skill level to interact with.
+- **Branching Skill Tree** — Sub-specialties deepen as colonists level up. Structure and unlock conditions to be designed.
 
 ---
 
 ## Robot
 
-- **Wave spawning system** — Timing, escalation, spawn points, difficulty scaling.
-- **Hauling live robots** — Dragging a functional robot back to base as a deliberate risk.
-- **Heavy robot introduction** — When heavy robots first appear in a run.
-- **Aggro behavior** — Whether robots have a detection range or always target the nearest Hub.
 - **Covered structures / shade** — Robots aware of whether they're under cover. Shade drops solar strength — robots could freeze mid-day under sufficient cover.
 - **Rover power extension** — Late-game robot countermeasure. Rovers with solar panels follow robots via a tether, allowing them to operate under cover.
-- **Visual state for frozen robots**
-
----
-
-## Job Board
-
-- **CRITICAL force-override** — Whether `very_much` priority should hard-override force-tasked colonists.
-- **Job Board UI** — Visual representation of the queue.
 
 ---
 
@@ -2160,46 +2193,23 @@ Out of scope for MVP. Organized by system.
 
 - **Food variety multiplier** — A wider variety in the colony's pool raises the effective food level beyond quantity alone.
 - **Hunting tower stocking automation** — Whether Stone ammo can be auto-restocked vs. hauled manually.
-- **Food spoilage** — Whether food decays if the pool overflows a cap.
-
----
-
-## Animals
-
-- **Wander/attraction model** — How aggressively are animals drawn to hunting towers?
-- **Spawn rates and distribution** — How dense, where, when.
-- **Animal AI variety** — Skittish prey, larger animals that resist attraction, etc.
 
 ---
 
 ## Transport
 
-- **Railcar one-way vs. bidirectional** — Movement rules at junctions.
 - **Branching belts via splitter buildings** — A late-game logistics structure.
-- **Maximum belt segment length** — Whether a hard cap exists.
-- **Railcar operator** — Whether railcars need a colonist driver.
-
----
-
-## Hub
-
-- **Hub capacity upgrades** — Whether buffer capacities can be increased.
-- **Home Hub assignment** — Colonists tied to a specific Hub, enabling per-Hub recall and population caps.
-- **Population cap** — Whether the colony has a maximum colonist count.
 
 ---
 
 ## Recall
 
-- **Per-Hub recall** — Requires home Hub assignment.
-- **Auto-recall** — Trigger automatically at a configurable time before dawn.
 - **Bell visual/audio** — World-space cue when recall fires.
 
 ---
 
 ## Possession
 
-- **Initiation UI** — Click-to-possess, radial menu, or other.
 - **Death cooldown** — Whether possession is briefly locked after a possessed colonist dies.
 - **Visual differentiation per player** — How possessed colonists are highlighted by owning player.
 
@@ -2208,8 +2218,7 @@ Out of scope for MVP. Organized by system.
 ## Multiplayer
 
 - **Online play** — Currently LAN-only. Requires relay/STUN.
-- **Lobby & matchmaking**.
-- **Player disconnection handling** — Pause, AI fallback, autonomous fallback.
+- **Lobby & matchmaking**
 - **Host migration** — Whether the host role can transfer mid-session.
 
 ---
@@ -2218,8 +2227,6 @@ Out of scope for MVP. Organized by system.
 
 - **Weather** — Cloudy days reduce solar strength, weakening robots below their sine-curve peak.
 - **Planet progression** — What comes after the first planet is colonized.
-- **Map** — Size, layout, biomes, resource distribution.
-- **Landing flag visual** — Whether the player designs the flag or it's randomly generated.
 
 ---
 
@@ -2229,20 +2236,13 @@ Out of scope for MVP. Organized by system.
 
 ---
 
-## Rendering
-
-- **Fog of war** — Strategic-view occlusion outside colonist sight.
-- **First-person fog** — Atmospheric distance fog while possessed.
-
----
-
 # Part 4 — Open Questions
 
 # Solar Siege — Open Questions
 
 Decisions needed before or during development. Not shelved features — see FUTURE.md for those.
 
-Tunable constants are not listed here — see Balance.md. Anything here is a real design question with no clear answer yet.
+Items that are just "what value should X be" belong in Balance.md, not here. This list contains genuine design decisions with no clear answer yet.
 
 ---
 
@@ -2253,75 +2253,74 @@ Tunable constants are not listed here — see Balance.md. Anything here is a rea
 
 ---
 
-## Job Board
+## Robot
 
-- **Active dismantling jobs** — Should DISMANTLING jobs auto-target active robots or only frozen ones? Player choice via priority flag?
-- **Area-paint scope** — Can players paint across long distances, or is there a max area size?
+- **Wave spawning** — What triggers a wave? Time of day only, or does colony size/progress also factor in? How does difficulty escalate?
+- **Heavy robot introduction** — What determines when heavy robots first appear? Day count, Hub count, or a player-triggered threshold?
+- **Aggro behavior** — Do robots target the nearest Hub blindly, or do they have a detection range that can be exploited?
+- **Frozen robot visuals** — What does a frozen robot look like? Same model, or a distinct "statue" state?
+- **The first robot** — How does the very first robot appear so that a colonist can dismantle it and trigger the awakening?
 
 ---
 
-## Robot
+## Job Board
 
-- **The first robot** — How does the very first robot appear so that a colonist can dismantle it and trigger the awakening? Player-placed during landing? A single dormant robot near the spawn?
-- **Scrap Processor / Shiny Scrap Processor** — Same building with mode switch, or separate buildings?
-- **Iridium processor** — Does Iridium require a dedicated late-game building?
+- **`very_much` vs force-task override** — Should `very_much` priority (e.g. Recall) hard-override force-tasked colonists, or remain blocked by them?
+- **Job Board UI** — How is the queue represented visually? How does a player see what's pending, who's assigned, and what's urgent?
 
 ---
 
 ## Food
 
-- **Hunting tower stone consumption** — How much Stone per shot? Should the cost be visible in Balance.md?
+- **Food spoilage** — Does food decay if the pool overflows a cap? Yes or no.
 
 ---
 
 ## Animals
 
-- **Wander/attraction model details** — How are wandering and tower-attraction balanced?
-- **Spawn distribution** — Where do animals appear? Throughout the map evenly, or in habitats?
+- **Wander/attraction balance** — How aggressively are animals drawn to hunting towers? Is wandering random or biome-influenced?
+- **Spawn distribution** — Where do animals appear — evenly across the map, near resources, near hunting towers?
 
 ---
 
 ## Transport
 
-- **Track grid resolution** — What's the snapping grid for track placement?
-- **Track branching routing** — How does a railcar choose at a junction? By cargo destination, by next-stop logic, or player-specified?
+- **Railcar routing** — At a junction, how does a railcar choose which branch? By cargo destination, next-stop logic, or player-specified?
+- **Railcar operator** — Are railcars fully autonomous, or does a colonist need to drive?
 
 ---
 
 ## Hub
 
-- **Structure range** — At what distance can a structure draw from a Hub buffer?
+- **Population cap** — Is there a maximum colony size? If so, what determines it — food capacity, Hub count, a fixed value?
 - **Hub build cost** — How much material is required to build a new Hub?
+- **Structure range** — At what distance can a structure draw from a Hub buffer?
 
 ---
 
 ## Possession
 
-- **Input remapping** — How is controller input remapped per player for up to 4 players in Godot 4?
-
----
-
-## Solar Cycle
-
-- **Day/night duration** — Configurable per session, per map, or fixed?
-- **Sun visual** — Should DirectionalLight3D rotation be tied to `current_time`?
-- **Time speed modifier** — Can players speed up time during low-threat periods?
+- **Initiation** — How does a player enter possession? Click directly on a colonist, a radial menu, a selection panel?
 
 ---
 
 ## Multiplayer
 
-- **RPC validation** — What state mutations are server-validated vs. trusted from clients?
+- **Player disconnection** — What happens when a player disconnects mid-session? Pause, AI fallback, or workers go autonomous?
 
 ---
 
 ## World
 
+- **Map type** — Finite bordered map, or infinite looping planet? A finite map is simpler for MVP; a looping map makes the planet feel real but requires more technical work.
+- **First-person fog** — If the map loops, fog is essential to hide the seam. If finite, it's atmosphere only. Decision depends on map type above.
+- **Map size, layout, biomes, resource distribution** — None of this is designed yet.
 - **Landing flag** — Player-designed or randomly generated?
-- **Planet name input** — Free text from one player, or proposed/voted by all?
+- **Planet name input** — Free text from one player, or proposed and agreed on by all?
 
 ---
 
 ## General
 
-- **Recall behavior at the Hub** — Do recalled colonists stand outside (current assumption) or go inside? Inside requires interior representation.
+- **Recall at the Hub** — Do recalled colonists stand outside (current assumption) or go inside? Inside requires interior Hub representation.
+- **Active dismantling targeting** — Do DISMANTLING jobs auto-target active robots, or only frozen ones? Can the player flag an active robot for dismantling?
